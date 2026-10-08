@@ -37,7 +37,7 @@ function getBuildArtifactName(baseVersion) {
   const branchType = BUILD_REF.split('/')[0];
 
   // Pushed tag (e.g. v1.1.0)
-  if (/v(\d\.){2}\d/.test(branchType)) {
+  if (/^v\d+\.\d+\.\d+$/.test(branchType)) {
     return `v${baseVersion}`;
   }
 

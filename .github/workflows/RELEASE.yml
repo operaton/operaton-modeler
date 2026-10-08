@@ -1,9 +1,18 @@
 name: RELEASE
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to release (e.g. v1.2.0)'
+        required: true
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   pre_release:
     name: Prepare release
@@ -13,27 +22,53 @@ jobs:
     outputs:
       tag: ${{ steps.tag.outputs.TAG }}
     steps:
+    - name: Get tag
+      id: tag
+      env:
+        TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      run: |
+        if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "::error::'$TAG' is not a release tag (expected vX.Y.Z)"
+          exit 1
+        fi
+        echo "TAG=$TAG" >> $GITHUB_OUTPUT
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
-        fetch-tags: true
-    - name: Get tag
-      id: tag
-      run: |
-        echo "TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
-    - name: Create GitHub release
+        ref: ${{ steps.tag.outputs.TAG }}
+    - name: Verify tag matches app version
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ steps.tag.outputs.TAG }}
       run: |
-        gh release create ${{ steps.tag.outputs.TAG }} --draft --title ${{ steps.tag.outputs.TAG }}
+        VERSION=$(node -p "require('./app/package.json').version.split('-')[0]")
+        if [ "$TAG" != "v$VERSION" ]; then
+          echo "::error::Tag $TAG does not match app/package.json version $VERSION"
+          exit 1
+        fi
+    - name: Create draft GitHub release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ steps.tag.outputs.TAG }}
+      run: |
+        if gh release view "$TAG" > /dev/null 2>&1; then
+          echo "Release $TAG already exists"
+        else
+          gh release create "$TAG" --draft --verify-tag \
+            --title "Operaton Modeler $TAG" --generate-notes
+        fi
 
   build_release:
-    name: Build release
+    name: Build release (${{ matrix.platform }})
     needs: pre_release
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-2022 ]
+        include:
+        - os: ubuntu-latest
+          platform: linux
+        - os: macos-latest
+          platform: mac
+        - os: windows-2022
+          platform: win
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
@@ -44,6 +79,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.pre_release.outputs.tag }}
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
@@ -51,47 +88,18 @@ jobs:
         cache: 'npm'
     - name: Install dependencies
       run: npm ci
-    - name: Build release (Linux)
-      if: ${{ runner.OS == 'Linux' }}
+    - name: Build and upload release artifacts
       env:
-        BUILD_REF: ${{ github.ref_name }}
+        BUILD_REF: ${{ needs.pre_release.outputs.tag }}
+        IS_CI: true
+        NODE_ENV: "production"
+        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        # code signing (optional, skipped when not configured)
         CSC_LINK: "${{ secrets.CSC_LINK }}"
         CSC_KEY_PASSWORD: "${{ secrets.CSC_KEY_PASSWORD }}"
-        IS_CI: true
-        MIXPANEL_TOKEN: "${{ secrets.MIXPANEL_PROJECT_TOKEN }}"
-        MIXPANEL_STAGE: "prod"
-        SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
-        SENTRY_DSN: "${{ secrets.SENTRY_DSN }}"
-        SENTRY_ORG: "${{ secrets.SENTRY_ORG }}"
-        SENTRY_PROJECT: "${{ secrets.SENTRY_PROJECT }}"
-        UPDATES_SERVER_PRODUCT_NAME: "${{ secrets.UPDATES_SERVER_PRODUCT_NAME }}"
-        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        NODE_ENV: "production"
-      run: npm run build -- --linux --publish
-    - name: Build release (MacOS)
-      if: ${{ runner.os == 'macOS' }}
-      env:
         APPLE_DEVELOPER_ID: "${{ secrets.APPLE_DEVELOPER_ID }}"
         APPLE_DEVELOPER_ID_PASSWORD: "${{ secrets.APPLE_DEVELOPER_ID_PASSWORD }}"
-        BUILD_REF: ${{ github.ref_name }}
         APPLE_TEAM_ID: "${{ secrets.APPLE_TEAM_ID }}"
-        CSC_LINK: "${{ secrets.CSC_LINK }}"
-        CSC_KEY_PASSWORD: "${{ secrets.CSC_KEY_PASSWORD }}"
-        IS_CI: true
-        MIXPANEL_TOKEN: "${{ secrets.MIXPANEL_PROJECT_TOKEN }}"
-        MIXPANEL_STAGE: "prod"
-        SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
-        SENTRY_DSN: "${{ secrets.SENTRY_DSN }}"
-        SENTRY_ORG: "${{ secrets.SENTRY_ORG }}"
-        SENTRY_PROJECT: "${{ secrets.SENTRY_PROJECT }}"
-        UPDATES_SERVER_PRODUCT_NAME: "${{ secrets.UPDATES_SERVER_PRODUCT_NAME }}"
-        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        NODE_ENV: "production"
-      run: npm run build -- --mac --publish
-    - name: Build release (Windows)
-      if: ${{ runner.os == 'Windows' }}
-      env:
-        BUILD_REF: ${{ github.ref_name }}
         AZURE_CERT_PROFILE_NAME: "${{ secrets.AZURE_CERT_PROFILE_NAME }}"
         AZURE_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
         AZURE_CLIENT_SECRET: "${{ secrets.AZURE_CLIENT_SECRET }}"
@@ -99,7 +107,7 @@ jobs:
         AZURE_ENDPOINT: "${{ secrets.AZURE_ENDPOINT }}"
         AZURE_PUBLISHER_NAME: "${{ secrets.AZURE_PUBLISHER_NAME }}"
         AZURE_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
-        IS_CI: true
+        # telemetry and error tracking (optional)
         MIXPANEL_TOKEN: "${{ secrets.MIXPANEL_PROJECT_TOKEN }}"
         MIXPANEL_STAGE: "prod"
         SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
@@ -107,6 +115,21 @@ jobs:
         SENTRY_ORG: "${{ secrets.SENTRY_ORG }}"
         SENTRY_PROJECT: "${{ secrets.SENTRY_PROJECT }}"
         UPDATES_SERVER_PRODUCT_NAME: "${{ secrets.UPDATES_SERVER_PRODUCT_NAME }}"
-        GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        NODE_ENV: "production"
-      run: npm run build -- --win --publish
+      run: npm run build -- --${{ matrix.platform }} --publish
+
+  publish_release:
+    name: Publish release
+    needs: [ pre_release, build_release ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Publish GitHub release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_REPO: ${{ github.repository }}
+        TAG: ${{ needs.pre_release.outputs.tag }}
+      run: |
+        gh release edit "$TAG" --draft=false --latest
+        gh release view "$TAG" --json url,assets \
+          --jq '"Published " + .url, (.assets[] | " - " + .name)'

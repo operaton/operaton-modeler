@@ -45,6 +45,12 @@ module.exports = async function(context) {
     APPLE_TEAM_ID: appleTeamId
   } = process.env;
 
+  if (!appleId || !appleIdPassword || !appleTeamId) {
+    console.log('  • skipped notarization, Apple credentials not configured');
+
+    return;
+  }
+
   const appPath = `${appOutDir}/${appName}.app`;
 
   console.log(`  • notarizing app from path: ${appPath}`);
