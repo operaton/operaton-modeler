@@ -38,7 +38,7 @@ import operatonBpmnModdle from '../../../../moddle/operaton-bpmn-moddle';
 import Flags, {
   DISABLE_ADJUST_ORIGIN,
   ENABLE_NEW_CONTEXT_PAD,
-  ENABLE_OPERATON_AD_HOC
+  ENABLE_AD_HOC
 } from '../../../../util/Flags';
 
 export default class PlatformBpmnModeler extends BpmnModeler {
@@ -51,10 +51,10 @@ export default class PlatformBpmnModeler extends BpmnModeler {
       ...otherOptions
     } = options;
 
-    const enableOperatonAdHoc = Flags.get(ENABLE_OPERATON_AD_HOC, false);
+    const enableAdHoc = Flags.get(ENABLE_AD_HOC, false);
 
-    // CLI values such as --enable-operaton-ad-hoc=false arrive as strings.
-    if (enableOperatonAdHoc === true || enableOperatonAdHoc === 'true') {
+    // CLI values such as --enable-ad-hoc=false arrive as strings.
+    if (enableAdHoc === true || enableAdHoc === 'true') {
       additionalModules = [ ...additionalModules, operatonAdHocModule ];
     }
 

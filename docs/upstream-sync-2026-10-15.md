@@ -8,7 +8,7 @@ Der Operaton-Fork wurde von `ce5b0da0` (gemeinsame Basis `23c58005`, Version 1.2
 - Korrekturen für BPMN Copy & Paste, React-Tab-Lebenszyklus, fehlende Formular-Panels, DMN-Bearbeitung und Engine-Versionsüberschreibung.
 - Operaton-Branding, Deployment-Endpunkte, Cockpit-Verweise und Paketnamen erhalten.
 - Engine-Auswahl auf die veröffentlichten Reihen 1.0, 1.1, 2.0 und 2.1 korrigiert; Standard 2.1. Die Remote-Tags zeigen 2.2 bislang nur als Vorabversion.
-- Ad-hoc-Eigenschaften mit Operaton-Engine-PR [#3207](https://github.com/operaton/operaton/pull/3207) abgeglichen und hinter dem standardmäßig deaktivierten Featureflag `enable-operaton-ad-hoc` vorbereitet. Details und Aktivierung stehen im [Ad-hoc-Abgleich](operaton-ad-hoc-comparison.md).
+- Ad-hoc-Eigenschaften mit Operaton-Engine-PR [#3207](https://github.com/operaton/operaton/pull/3207) abgeglichen und hinter dem standardmäßig deaktivierten Featureflag `enable-ad-hoc` vorbereitet. Details und Aktivierung stehen im [Ad-hoc-Abgleich](operaton-ad-hoc-comparison.md).
 - Restricted Variables und zusätzliche Fluxnova-Kompatibilität bewusst ausgelassen. Upstream-Attribution und Lizenzhinweise bleiben erhalten.
 
 ## Zusätzlich behobene Fehler
@@ -50,7 +50,7 @@ Abschließender Gesamtlauf einschließlich Ad-hoc-Vorbereitung erfolgreich (`npm
 
 Manueller Desktop-Smoke-Test mit isoliertem Profil: BPMN-, DMN- und Formular-Editor geöffnet; BPMN-Element beschriftet, über das native Menü gespeichert, geschlossen und erneut geöffnet. Beschriftung und Operaton-Namespace blieben erhalten. Zusätzlich wurde das Öffnen über eine zweite Electron-Instanz geprüft.
 
-Nach der Ad-hoc-Ergänzung erneut gebaut und in der gepackten arm64-App geprüft: Start mit `--enable-operaton-ad-hoc=true`, sichtbare Zusatzgruppe, Standardwert `autoComplete=true`, Änderung auf `Sequential`, initiale Aktivität und `autoComplete=false`. Nach nativem Speichern enthielt das XML die erwarteten Operaton-Attribute/Properties. Neustart mit `--enable-operaton-ad-hoc=false` blendete die Zusatzgruppe aus; nach einer Namensänderung und erneutem Speichern waren sämtliche Ad-hoc-Einstellungen weiterhin vorhanden.
+Nach der Ad-hoc-Ergänzung erneut gebaut und in der gepackten arm64-App geprüft: Aktivierung per CLI, sichtbare Zusatzgruppe, Standardwert `autoComplete=true`, Änderung auf `Sequential`, initiale Aktivität und `autoComplete=false`. Nach nativem Speichern enthielt das XML die erwarteten Operaton-Attribute/Properties. Deaktivierung per CLI beim Neustart blendete die Zusatzgruppe aus; nach einer Namensänderung und erneutem Speichern waren sämtliche Ad-hoc-Einstellungen weiterhin vorhanden.
 
 Die Tests liefen mit Node.js 24.19.0 auf macOS/Apple Silicon. Windows und Linux wurden in dieser Sitzung nicht ausgeführt. Deployment und Prozessstart gegen einen laufenden Operaton-Server wurden nicht live geprüft; die vorhandenen API-/UI-Tests verwenden Mocks. macOS-Testpakete werden ohne Signatur und Notarisierung erstellt.
 

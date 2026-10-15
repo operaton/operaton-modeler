@@ -10,13 +10,13 @@ In der persönlichen Datei `<Benutzerverzeichnis>/resources/flags.json` ergänze
 
 ```json
 {
-  "enable-operaton-ad-hoc": true
+  "enable-ad-hoc": true
 }
 ```
 
 Das Benutzerverzeichnis ist standardmäßig unter macOS `~/Library/Application Support/operaton-modeler`, unter Windows `%APPDATA%\operaton-modeler` und unter Linux `$XDG_CONFIG_HOME/operaton-modeler` beziehungsweise `~/.config/operaton-modeler`. Ein mit `--user-data-dir` gewähltes Verzeichnis ersetzt diesen Pfad. Vorhandene Einstellungen in der JSON-Datei bleiben bestehen.
 
-Alternativ den Modeler mit `--enable-operaton-ad-hoc=true` starten. Die explizite Schreibweise mit `=true` verhindert, dass ein folgender Dateipfad als Flag-Wert gelesen wird. `--enable-operaton-ad-hoc=false` oder der JSON-Wert `false` deaktiviert die Erweiterung; CLI-Werte überschreiben die Datei. Akzeptiert werden ausschließlich Boolean `true` und die Zeichenfolge `"true"`.
+Alternativ den Modeler mit `--enable-ad-hoc=true` starten. Die explizite Schreibweise mit `=true` verhindert, dass ein folgender Dateipfad als Flag-Wert gelesen wird. `--enable-ad-hoc=false` oder der JSON-Wert `false` deaktiviert die Erweiterung; CLI-Werte überschreiben die Datei. Akzeptiert werden ausschließlich Boolean `true` und die Zeichenfolge `"true"`.
 
 Bei einem ausgewählten BPMN-Ad-hoc-Subprozess erscheint die Gruppe **Operaton ad hoc (experimental)**. Die vorhandene BPMN-Gruppe **Completion** bleibt erhalten. Ohne Flag fehlt nur die zusätzliche Gruppe; vorhandene Ad-hoc-Attribute und Properties bleiben beim Öffnen und Speichern erhalten. Das Flag ändert die unterstützte Engine-Versionsauswahl nicht.
 

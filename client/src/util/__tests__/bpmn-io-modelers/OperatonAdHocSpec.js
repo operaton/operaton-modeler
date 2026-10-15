@@ -10,7 +10,7 @@ import { act } from '@bpmn-io/properties-panel/preact/test-utils';
 import BpmnModeler from '../../../app/tabs/bpmn/modeler/BpmnModeler';
 import { BpmnEditor } from '../../../app/tabs/bpmn/BpmnEditor';
 import diagramTemplate from '../../../app/tabs/bpmn/diagram.bpmn';
-import Flags, { ENABLE_OPERATON_AD_HOC } from '../../Flags';
+import Flags, { ENABLE_AD_HOC } from '../../Flags';
 import { ENGINES, getLatestStable } from '../../Engines';
 
 const OPERATON_NAMESPACE = 'http://operaton.org/schema/1.0/bpmn';
@@ -44,7 +44,7 @@ describe('Operaton ad-hoc subprocess with real modeler', function() {
   });
 
   it('should leave the feature disabled for the CLI string false', async function() {
-    Flags.init({ [ ENABLE_OPERATON_AD_HOC ]: 'false' });
+    Flags.init({ [ ENABLE_AD_HOC ]: 'false' });
     const { modeler, panel } = await createModeler();
 
     expect(modeler.get('operatonAdHocProvider', false)).not.to.exist;
@@ -54,7 +54,7 @@ describe('Operaton ad-hoc subprocess with real modeler', function() {
 
   [ true, 'true' ].forEach(enabled => {
     it(`should enable the properties for ${typeof enabled} true and preserve the implicit autoComplete default`, async function() {
-      Flags.init({ [ ENABLE_OPERATON_AD_HOC ]: enabled });
+      Flags.init({ [ ENABLE_AD_HOC ]: enabled });
       const { modeler, shape, panel } = await createModeler();
 
       const autoComplete = getInput(panel, 'autoComplete');
@@ -76,7 +76,7 @@ describe('Operaton ad-hoc subprocess with real modeler', function() {
 
   [ 'Task_A,Task_B', '${selectedTasks}' ].forEach(collection => {
     it(`should preserve ${collection} and completion settings when saved and reopened with the feature disabled`, async function() {
-      Flags.init({ [ ENABLE_OPERATON_AD_HOC ]: true });
+      Flags.init({ [ ENABLE_AD_HOC ]: true });
       const { modeler, shape, panel } = await createModeler();
 
       await act(() => fireEvent.input(getInput(panel, 'activeTasksCollection'), { target: { value: collection } }));
@@ -119,7 +119,7 @@ describe('Operaton ad-hoc subprocess with real modeler', function() {
   });
 
   it('should omit autoComplete again after restoring the default in the properties panel', async function() {
-    Flags.init({ [ ENABLE_OPERATON_AD_HOC ]: true });
+    Flags.init({ [ ENABLE_AD_HOC ]: true });
     const { modeler, shape, panel } = await createModeler();
 
     await act(() => fireEvent.click(getInput(panel, 'autoComplete')));
@@ -133,7 +133,7 @@ describe('Operaton ad-hoc subprocess with real modeler', function() {
   });
 
   it('should undo and redo collection creation, edits and removal as individual commands', async function() {
-    Flags.init({ [ ENABLE_OPERATON_AD_HOC ]: true });
+    Flags.init({ [ ENABLE_AD_HOC ]: true });
     const { modeler, shape, panel } = await createModeler();
     const businessObject = shape.businessObject;
     const commandStack = modeler.get('commandStack');
@@ -164,7 +164,7 @@ describe('Operaton ad-hoc subprocess with real modeler', function() {
 
   [ false, true ].forEach(withOtherProperty => {
     it(`should preserve unrelated extensions${withOtherProperty ? ' and properties' : ''} when clearing the collection`, async function() {
-      Flags.init({ [ ENABLE_OPERATON_AD_HOC ]: true });
+      Flags.init({ [ ENABLE_AD_HOC ]: true });
       const { modeler, shape, panel } = await createModeler();
       const businessObject = shape.businessObject;
       const moddle = modeler.get('moddle');
