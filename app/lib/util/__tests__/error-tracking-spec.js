@@ -12,6 +12,8 @@ const sinon = require('sinon');
 
 const os = require('os');
 
+const { rewriteFramesIntegration } = require('@sentry/node');
+
 const errorTracking = require('../error-tracking');
 
 
@@ -99,6 +101,8 @@ describe('error-tracking', function() {
     // then
     expect(params.dsn).to.eql('SOME_SENTRY_DSN');
     expect(params.release).to.eql('v2');
+    expect(params.enableLogs).to.be.false;
+    expect(params.enableMetrics).to.be.false;
     expect(params.integrations).to.have.length(1);
   });
 
@@ -120,6 +124,42 @@ describe('error-tracking', function() {
 
     // then
     expect(params.dsn).to.eql('FLAG_SENTRY_DSN');
+  });
+
+
+  it('should remove local paths from exception frames with the SDK integration', function() {
+
+    // given
+    const sentryInitSpy = sinon.spy();
+    const config = mockConfig({ 'editor.privacyPreferences': { 'ENABLE_CRASH_REPORTS': true } });
+
+    errorTracking.start(mockSentry({ sentryInitSpy }), 'v2', config, mockFlags(), mockRenderer());
+
+    const { integrations: [ integration ] } = sentryInitSpy.firstCall.args[0];
+    const event = {
+      exception: {
+        values: [ {
+          stacktrace: {
+            frames: [
+              { filename: '/Users/private-user/Operaton Modeler.app/resources/app.js', lineno: 42 },
+              { filename: 'C:\\Users\\private-user\\Operaton Modeler\\app.js', lineno: 43 },
+              { function: 'nativeFunction' }
+            ]
+          }
+        } ]
+      }
+    };
+
+    // when
+    const result = integration.processEvent(event);
+
+    // then
+    expect(integration.name).to.eql('RewriteFrames');
+    expect(result.exception.values[0].stacktrace.frames).to.eql([
+      { filename: 'file:///build/app.js', lineno: 42 },
+      { filename: 'file:///build/app.js', lineno: 43 },
+      { function: 'nativeFunction' }
+    ]);
   });
 
 
@@ -318,6 +358,7 @@ function mockRenderer(spy) {
 
 function mockSentry(props = {}) {
   return {
+    rewriteFramesIntegration,
     init: (initParam) => {
       if (props.sentryInitSpy) {
         props.sentryInitSpy(initParam);

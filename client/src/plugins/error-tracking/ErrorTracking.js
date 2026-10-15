@@ -13,7 +13,6 @@ import debug from 'debug';
 import { PureComponent } from 'react';
 
 import * as Sentry from '@sentry/browser';
-import { RewriteFrames } from '@sentry/integrations';
 
 import Metadata from '../../util/Metadata';
 
@@ -84,8 +83,10 @@ export default class ErrorTracking extends PureComponent {
       this._sentry.init({
         dsn: this.SENTRY_DSN,
         release: releaseTag,
+        enableLogs: false,
+        enableMetrics: false,
         integrations: [
-          new RewriteFrames({
+          this._sentry.rewriteFramesIntegration({
             iteratee: (frame) => {
               if (!frame.filename) {
                 return frame;

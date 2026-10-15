@@ -56,6 +56,8 @@ Die Tests liefen mit Node.js 24.19.0 auf macOS/Apple Silicon. Windows und Linux 
 
 ## Dependency-Audit
 
+Die folgenden Zahlen dokumentieren den Stand unmittelbar nach dem Upstream-Abgleich. Die anschließende Bereinigung ist im [Dependency-Audit vom 15.10.2026](dependency-audit-2026-10-15.md) dokumentiert: Produktions- und Plugin-Abhängigkeiten jetzt ohne Befunde, neun verbleibende Paketmeldungen im Entwicklungsbereich zu einer noch ungepatchten `braces`-Schwachstelle.
+
 `npm audit` meldet für den übernommenen Dependency-Stand 102 Paketbefunde: 3 kritisch, 55 hoch, 41 moderat und 3 niedrig. Die kritisch eingestuften Pakete `handlebars`, `lerna` und `shell-quote` gehören ausschließlich zum Entwicklungs-/Build-Bereich; Lerna erbt die Einstufung seiner Abhängigkeit.
 
 `npm audit --omit=dev` meldet 34 Befunde: 0 kritisch, 13 hoch, 20 moderat und 1 niedrig. Betroffen sind unter anderem Abhängigkeitsketten von Camunda SDK/gRPC, Sentry, Dateisuche und UI-Bibliotheken. Ein Audit-Treffer allein belegt keine erreichbare Ausnutzung. Eine vollständige Sicherheitsbereinigung ist durch den Upstream-Abgleich nicht erreicht; es wurden keine pauschalen Major-Upgrades per `npm audit fix --force` vorgenommen.

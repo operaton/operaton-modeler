@@ -12,8 +12,6 @@ const os = require('os');
 
 const log = require('../log')('app:error-tracking');
 
-const { RewriteFrames } = require('@sentry/integrations');
-
 const PRIVACY_PREFERENCES_CONFIG_KEY = 'editor.privacyPreferences';
 const EDITOR_ID_CONFIG_KEY = 'editor.id';
 const CRASH_REPORTS_CONFIG_KEY = 'ENABLE_CRASH_REPORTS';
@@ -116,8 +114,10 @@ function initializeSentry(Sentry, editorID, release, dsn) {
     Sentry.init({
       dsn,
       release,
+      enableLogs: false,
+      enableMetrics: false,
       integrations: [
-        new RewriteFrames({
+        Sentry.rewriteFramesIntegration({
           iteratee: (frame) => {
             if (!frame.filename) {
               return frame;

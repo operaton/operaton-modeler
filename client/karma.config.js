@@ -29,8 +29,6 @@ var { DefinePlugin } = require('webpack');
 var absoluteBasePath = path.resolve(__dirname);
 var resourcePath = path.resolve(__dirname + '/resources');
 
-process.env.CHROME_BIN = require('puppeteer').executablePath();
-
 // configures browsers to run test against
 // any of [ 'ChromeHeadless', 'Chrome', 'Firefox', 'IE', 'PhantomJS' ]
 var autocleanup = 'test/helper/autocleanup.js';
@@ -44,7 +42,9 @@ if (modelers) {
 }
 
 
-module.exports = function(karma) {
+module.exports = async function(karma) {
+  process.env.CHROME_BIN = await require('puppeteer').executablePath();
+
   karma.set({
 
     frameworks: [
@@ -142,7 +142,26 @@ module.exports = function(karma) {
             oneOf: [
               {
                 test: /[/\\][A-Z][^/\\]+\.svg$/,
-                use: 'react-svg-loader'
+                use: {
+                  loader: '@svgr/webpack',
+                  options: {
+                    exportType: 'default',
+                    svgoConfig: {
+                      plugins: [
+                        {
+                          name: 'preset-default',
+                          params: {
+                            overrides: {
+                              removeViewBox: false,
+                              removeTitle: false
+                            }
+                          }
+                        },
+                        'prefixIds'
+                      ]
+                    }
+                  }
+                }
               },
               {
                 test: /\.(bpmn|cmmn|dmn|xml|png|svg|form|rpa)$/,

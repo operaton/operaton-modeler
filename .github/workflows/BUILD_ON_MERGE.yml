@@ -20,7 +20,6 @@ jobs:
       BUILD_REF: ${{ github.base_ref }}
       BUILD_NUMBER: ${{ github.run_number }}-${{ github.run_id }}
       ELECTRON_GET_USE_PROXY: true
-      NODE_TLS_REJECT_UNAUTHORIZED: 0
 
     steps:
     - name: Checkout
@@ -35,9 +34,7 @@ jobs:
       run: npm ci
 
     - name: Test Modeler
-      run: |
-        npm install puppeteer
-        npm run test
+      run: npm run test
 
     - name: Get version (sets APP_VERSION)
       id: get-version

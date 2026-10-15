@@ -9,6 +9,11 @@
  */
 
 module.exports = function createLicenseBook(dependencies, type = 'plain') {
+  dependencies = dependencies.map(dependency => ({
+    ...dependency,
+    licenseText: dependency.licenseText && dependency.licenseText.replace(/[\t ]+$/gm, '')
+  }));
+
   switch (type) {
   case 'plain':
     return createLicenseBook_Plain(dependencies);

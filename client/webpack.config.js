@@ -81,7 +81,26 @@ module.exports = {
         oneOf: [
           {
             test: /[/\\][A-Z][^/\\]+\.svg$/,
-            use: 'react-svg-loader'
+            use: {
+              loader: '@svgr/webpack',
+              options: {
+                exportType: 'default',
+                svgoConfig: {
+                  plugins: [
+                    {
+                      name: 'preset-default',
+                      params: {
+                        overrides: {
+                          removeViewBox: false,
+                          removeTitle: false
+                        }
+                      }
+                    },
+                    'prefixIds'
+                  ]
+                }
+              }
+            }
           },
           {
             test: /\.(bpmn|cmmn|dmn|form|rpa)$/,

@@ -14,6 +14,8 @@ import React from 'react';
 
 import { render } from '@testing-library/react';
 
+import { rewriteFramesIntegration } from '@sentry/browser';
+
 import Flags, { SENTRY_DSN, DISABLE_REMOTE_INTERACTION } from '../../../util/Flags';
 import Metadata from '../../../util/Metadata';
 
@@ -180,7 +182,49 @@ describe('<ErrorTracking>', function() {
 
     expect(args[0].dsn).to.eql('TEST_DSN');
     expect(args[0].release).to.eql('3.5.0');
+    expect(args[0].enableLogs).to.be.false;
+    expect(args[0].enableMetrics).to.be.false;
     expect(args[0].integrations).to.have.length(1);
+  });
+
+
+  it('should remove local paths from exception frames with the SDK integration', async function() {
+
+    // given
+    const sentryInitSpy = sinon.spy();
+    const instance = createErrorTracking({
+      sentryInitSpy,
+      dsn: 'TEST_DSN',
+      configValues: { 'editor.privacyPreferences': { ENABLE_CRASH_REPORTS: true } }
+    });
+
+    await instance.initializeSentry();
+
+    const { integrations: [ integration ] } = sentryInitSpy.firstCall.args[0];
+    const event = {
+      exception: {
+        values: [ {
+          stacktrace: {
+            frames: [
+              { filename: 'file:///Users/private-user/Operaton Modeler.app/public/2.2.js', lineno: 42 },
+              { filename: 'C:\\Users\\private-user\\Operaton Modeler\\public\\2.2.js', lineno: 43 },
+              { function: 'nativeFunction' }
+            ]
+          }
+        } ]
+      }
+    };
+
+    // when
+    const result = integration.processEvent(event);
+
+    // then
+    expect(integration.name).to.eql('RewriteFrames');
+    expect(result.exception.values[0].stacktrace.frames).to.eql([
+      { filename: 'file:///build/2.2.js', lineno: 42 },
+      { filename: 'file:///build/2.2.js', lineno: 43 },
+      { function: 'nativeFunction' }
+    ]);
   });
 
 
@@ -444,8 +488,7 @@ describe('<ErrorTracking>', function() {
   });
 });
 
-// Handling of Stack frames is done in the sentry `RewriteFrames` integration,
-// we only check that our replace function is correct.
+// Check path formats independently of the SDK integration regression above.
 async function expectNormalization(prefix) {
 
   // given
@@ -516,6 +559,7 @@ function createErrorTracking(props = {}) {
   instance.SCHEDULE_TIME = props.overrideScheduleTime || instance.SCHEDULE_TIME;
 
   instance._sentry = {
+    rewriteFramesIntegration,
     init: (initParam) => {
       if (props.sentryInitSpy) {
         props.sentryInitSpy(initParam);

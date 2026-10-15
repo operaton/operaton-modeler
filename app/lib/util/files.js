@@ -8,7 +8,7 @@
  * except in compliance with the MIT License.
  */
 
-const { globSync } = require('fast-glob');
+const { globSync } = require('glob/raw');
 
 const path = require('path');
 const fs = require('fs');
@@ -127,14 +127,11 @@ function readFileAsJSON(file) {
  * @return {string[]}
  */
 function globFiles(pattern, options = {}) {
-  const defaultOptions = {
-    absolute: true,
-    onlyFiles: true
-  };
-
   const {
     searchPaths,
     cwd,
+    absolute = true,
+    onlyFiles = true,
     ...otherOptions
   } = options;
 
@@ -144,6 +141,8 @@ function globFiles(pattern, options = {}) {
         ...paths,
         ...globFiles(pattern, {
           ...otherOptions,
+          absolute,
+          onlyFiles,
           cwd: searchPath
         })
       ];
@@ -155,10 +154,13 @@ function globFiles(pattern, options = {}) {
     : {};
 
   return globSync(toPosixPath(pattern), {
-    ...defaultOptions,
+    absolute,
+    nodir: onlyFiles,
+    nocase: false,
+    follow: true,
     ...otherOptions,
     ...cwdOptions
-  }).map(toPosixPath);
+  }).map(toPosixPath).sort(comparePaths);
 }
 
 module.exports.globFiles = globFiles;
@@ -168,3 +170,12 @@ function toPosixPath(filePath) {
 }
 
 module.exports.toPosixPath = toPosixPath;
+
+function comparePaths(a, b) {
+
+  // Preserve the breadth-first order used when merging configuration files:
+  // nested files override their parent directories, later search paths win.
+  const depthDifference = a.split('/').length - b.split('/').length;
+
+  return depthDifference || (a < b ? -1 : a > b ? 1 : 0);
+}

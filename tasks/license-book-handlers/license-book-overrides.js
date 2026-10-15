@@ -8,8 +8,17 @@
  * except in compliance with the MIT License.
  */
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 module.exports = {
   'licenseTextOverrides': {
+
+    // Published packages omit these files. Exact release sources are recorded
+    // in licenses/README.md alongside the unmodified upstream license texts.
+    'formik': fs.readFileSync(path.join(__dirname, 'licenses/formik-2.4.9.LICENSE'), 'utf-8'),
+    '@nodable/entities': fs.readFileSync(path.join(__dirname, 'licenses/nodable-entities-3.0.0.LICENSE'), 'utf-8'),
+
     '@camunda/linting': `MIT License
 
 Copyright (c) 2022-present Camunda Services GmbH
@@ -207,6 +216,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.`
   },
   licenseFileOverrides: {
+
+    // server-utils omits LICENSE; its exact-version core dependency ships the
+    // common MIT license from the same Sentry JavaScript monorepo release.
+    '@sentry/server-utils': '../core/LICENSE',
     'htm_preact': '../LICENSE',
     'preact-compat': '../LICENSE',
     'preact-hooks': '../LICENSE',
@@ -216,6 +229,7 @@ SOFTWARE.`
     '@bpmn-io/form-js-playground': './LICENSE',
     '@bpmn-io/form-js-viewer': './LICENSE',
     'dmn-js-decision-table': './LICENSE',
+    'dmn-js-boxed-expression': './LICENSE',
     'dmn-js-drd': './LICENSE',
     'dmn-js-literal-expression': './LICENSE',
     'dmn-js-shared': './LICENSE',
@@ -230,6 +244,7 @@ SOFTWARE.`
     // bpmn.io license
     'bpmn-js': 'bpmn.io license',
     'dmn-js-decision-table': 'bpmn.io license',
+    'dmn-js-boxed-expression': 'bpmn.io license',
     'dmn-js-drd': 'bpmn.io license',
     'dmn-js-literal-expression': 'bpmn.io license',
     'dmn-js-shared': 'bpmn.io license',

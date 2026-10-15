@@ -15,7 +15,6 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-2022  ]
     runs-on: ${{ matrix.os }}
     env:
-      NODE_TLS_REJECT_UNAUTHORIZED: 0
       IS_CI: true
       BUILD_REF: ${{ github.event.pull_request.number || github.ref_name }}
       BUILD_NUMBER: ${{ github.run_number }}-${{ github.run_id }}
@@ -28,11 +27,9 @@ jobs:
         node-version: 24
         cache: 'npm'
     - name: Install npm dependencies
-      run: npm install
+      run: npm ci
     - name: Test Modeler
-      run: |
-        npm install puppeteer
-        npm run test
+      run: npm run test
 
     - name: Get version (sets APP_VERSION)
       id: get-version

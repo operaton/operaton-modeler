@@ -16,6 +16,7 @@ All notable changes to the [Operaton Modeler](https://github.com/operaton/operat
 - Replaced inherited application icons with the official Operaton logo for macOS, Windows and Linux, including desktop registration and window icons.
 - Prepared Operaton ad-hoc subprocess properties for engine PR #3207 behind the disabled-by-default `enable-ad-hoc` flag; existing settings survive saves with the flag disabled.
 - Omitted restricted-variable extensions and additional Fluxnova compatibility code.
+- Updated vulnerable dependencies, migrated SVG loading and file discovery, preserved crash-report privacy settings, and removed the CI TLS-validation bypass. Production and plugin audits are clean; the remaining development-only `braces` advisory is documented in the [dependency audit](docs/dependency-audit-2026-10-15.md).
 
 The entries below retain the upstream release history; Fluxnova-specific engine features do not imply Operaton support.
 
