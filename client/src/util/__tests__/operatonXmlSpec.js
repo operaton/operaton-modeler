@@ -120,7 +120,7 @@ describe('util - operatonXml', function() {
       metadata: {
         executionPlatformVersion: '2.1.0',
         exporter: 'Operaton Modeler',
-        exporterVersion: '1.3.3'
+        exporterVersion: '1.0.0'
       }
     };
 

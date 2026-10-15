@@ -7,6 +7,7 @@ on:
 jobs:
   pre_release:
     name: Prepare release
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -16,17 +17,33 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
-        fetch-tags: true
-    - name: Get tag
+        ref: ${{ github.ref }}
+    - name: Use Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: 24
+    - name: Validate release tag and application versions
       id: tag
       run: |
-        echo "TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+        VERSION=$(node app/util/validate-release-version.js "$GITHUB_REF")
+        echo "TAG=v$VERSION" >> "$GITHUB_OUTPUT"
+        VERSION_WITHOUT_METADATA=${VERSION%%+*}
+        if [[ "$VERSION_WITHOUT_METADATA" == *-* ]]; then
+          echo "PRERELEASE=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "PRERELEASE=false" >> "$GITHUB_OUTPUT"
+        fi
     - name: Create GitHub release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RELEASE_TAG: ${{ steps.tag.outputs.TAG }}
+        RELEASE_PRERELEASE: ${{ steps.tag.outputs.PRERELEASE }}
       run: |
-        gh release create ${{ steps.tag.outputs.TAG }} --draft --title ${{ steps.tag.outputs.TAG }}
+        if [ "$RELEASE_PRERELEASE" = "true" ]; then
+          gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --prerelease --latest=false
+        else
+          gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG"
+        fi
 
   build_release:
     name: Build release
@@ -44,6 +61,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v6
+      with:
+        ref: refs/tags/${{ needs.pre_release.outputs.tag }}
     - name: Use Node.js
       uses: actions/setup-node@v6
       with:
@@ -54,7 +73,7 @@ jobs:
     - name: Build release (Linux)
       if: ${{ runner.OS == 'Linux' }}
       env:
-        BUILD_REF: ${{ github.ref_name }}
+        BUILD_REF: ${{ needs.pre_release.outputs.tag }}
         CSC_LINK: "${{ secrets.CSC_LINK }}"
         CSC_KEY_PASSWORD: "${{ secrets.CSC_KEY_PASSWORD }}"
         IS_CI: true
@@ -73,7 +92,7 @@ jobs:
       env:
         APPLE_DEVELOPER_ID: "${{ secrets.APPLE_DEVELOPER_ID }}"
         APPLE_DEVELOPER_ID_PASSWORD: "${{ secrets.APPLE_DEVELOPER_ID_PASSWORD }}"
-        BUILD_REF: ${{ github.ref_name }}
+        BUILD_REF: ${{ needs.pre_release.outputs.tag }}
         APPLE_TEAM_ID: "${{ secrets.APPLE_TEAM_ID }}"
         CSC_LINK: "${{ secrets.CSC_LINK }}"
         CSC_KEY_PASSWORD: "${{ secrets.CSC_KEY_PASSWORD }}"
@@ -91,7 +110,7 @@ jobs:
     - name: Build release (Windows)
       if: ${{ runner.os == 'Windows' }}
       env:
-        BUILD_REF: ${{ github.ref_name }}
+        BUILD_REF: ${{ needs.pre_release.outputs.tag }}
         AZURE_CERT_PROFILE_NAME: "${{ secrets.AZURE_CERT_PROFILE_NAME }}"
         AZURE_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
         AZURE_CLIENT_SECRET: "${{ secrets.AZURE_CLIENT_SECRET }}"

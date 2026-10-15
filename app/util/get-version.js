@@ -10,6 +10,8 @@
 
 'use strict';
 
+const validateReleaseVersion = require('./validate-release-version');
+
 /**
  * Get the semantic version of the application.
  *
@@ -17,13 +19,14 @@
  * @return {string} actual app version
  */
 function getVersion() {
-  const baseVersion = require('../package.json').version.split('-')[0];
+  const version = require('../package.json').version;
+  const baseVersion = version.split('-')[0];
 
   const IS_CI = !!process.env.IS_CI;
   const IS_NIGHTLY = !!process.env.NIGHTLY;
 
   if (IS_CI) {
-    return getBuildArtifactName(baseVersion);
+    return getBuildArtifactName(version);
   } else if (IS_NIGHTLY) {
     return `${baseVersion}-nightly.${today()}`;
   } else {
@@ -31,14 +34,15 @@ function getVersion() {
   }
 }
 
-function getBuildArtifactName(baseVersion) {
+function getBuildArtifactName(version) {
+  const baseVersion = version.split('-')[0];
   const BUILD_REF = process.env.BUILD_REF;
   const BUILD_NUMBER = process.env.BUILD_NUMBER;
   const branchType = BUILD_REF.split('/')[0];
 
-  // Pushed tag (e.g. v1.1.0)
-  if (/v(\d\.){2}\d/.test(branchType)) {
-    return `v${baseVersion}`;
+  // Release tags carry the complete application version, including prereleases.
+  if (/^v\d+\.\d+\.\d+(?:[-+].*)?$/.test(BUILD_REF)) {
+    return validateReleaseVersion(BUILD_REF, { app: version });
   }
 
   switch (branchType) {

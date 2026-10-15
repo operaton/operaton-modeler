@@ -2,23 +2,20 @@ const getVersion = require('../get-version');
 
 const { expect } = require('chai');
 const sinon = require('sinon');
+const pkg = require('../../package.json');
 
 describe('GetVersion', function() {
   let origEnv, clock;
 
-  const Module = require('module');
   const sandbox = sinon.createSandbox();
-
-  this.beforeAll(function() {
-    sandbox.stub(Module.prototype, 'require').returns({ version:'1.0.0' });
-  });
-
-  this.afterAll(function() {
-    sandbox.restore();
-  });
 
   beforeEach(function() {
     origEnv = { ...process.env };
+
+    delete process.env.IS_CI;
+    delete process.env.NIGHTLY;
+
+    sandbox.stub(pkg, 'version').value('1.0.0');
 
     clock = sinon.useFakeTimers();
   });
@@ -27,6 +24,7 @@ describe('GetVersion', function() {
     process.env = { ...origEnv };
 
     clock.restore();
+    sandbox.restore();
   });
 
   it('should retrieve version for a "main" branch build', function() {
@@ -66,15 +64,11 @@ describe('GetVersion', function() {
   });
 
   it('should retrieve default version', function() {
-    process.env.IS_CI = false;
-    process.env.NIGHTLY = false;
-
     const version = getVersion();
     expect(version).to.eql('1.0.0-dev');
   });
 
   it('should retrieve version for a nightly build', function() {
-    process.env.IS_CI = false;
     process.env.NIGHTLY = true;
 
     const expectedDate = new Date('2025-12-31T12:00:00Z');
@@ -91,6 +85,37 @@ describe('GetVersion', function() {
     process.env.BUILD_REF = 'v1.0.0';
 
     const version = getVersion();
-    expect(version).to.eql('v1.0.0');
+    expect(version).to.eql('1.0.0');
+  });
+
+  it('should retain the prerelease version for a tag build', function() {
+    pkg.version = '1.0.0-rc.1';
+    process.env.IS_CI = true;
+    process.env.BUILD_REF = 'v1.0.0-rc.1';
+
+    expect(getVersion()).to.eql('1.0.0-rc.1');
+  });
+
+  it('should reject a tag that differs from the application version', function() {
+    process.env.IS_CI = true;
+    process.env.BUILD_REF = 'v1.3.3';
+
+    expect(getVersion).to.throw('does not match app version 1.0.0');
+  });
+
+  it('should reject a stable tag for a prerelease application version', function() {
+    pkg.version = '1.0.0-rc.1';
+    process.env.IS_CI = true;
+    process.env.BUILD_REF = 'v1.0.0';
+
+    expect(getVersion).to.throw('does not match app version 1.0.0-rc.1');
+  });
+
+  it('should treat branch names containing a version as branches', function() {
+    process.env.IS_CI = true;
+    process.env.BUILD_REF = 'feature/v1.0.0';
+    process.env.BUILD_NUMBER = '123';
+
+    expect(getVersion()).to.eql('1.0.0-feature-v1-0-0-b123');
   });
 });

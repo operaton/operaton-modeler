@@ -4,6 +4,8 @@ An integrated modeling solution for BPMN, DMN, and Forms based on [bpmn.io](http
 
 Operaton Modeler is ported from [Fluxnova Modeler](https://github.com/finos/fluxnova-modeler) and adapted for the Operaton platform.
 
+Operaton Modeler has its own release lifecycle, starting with the planned __1.0.0__ release. Upstream Modeler versions describe the project's history; they do not determine Operaton Modeler versions. See the [versioning policy](./docs/versioning.md).
+
 ![Operaton Modeler](resources/screenshot.png)
 
 ## Resources
@@ -17,10 +19,9 @@ Experimental Operaton ad-hoc subprocess editing is disabled by default. See the 
 
 Use Node.js 24.15 or newer within the 24.x release line, matching the CI workflows. Build the app in a Posix environment. On Windows that is Git Bash or WSL. Make sure you have installed all the [necessary tools](https://github.com/nodejs/node-gyp#installation) to install and compile Node.js C++ addons.
 
-```sh
-# checkout a tag
-git checkout main
+Check out the desired Operaton revision, then install and build:
 
+```sh
 # install dependencies
 npm ci
 
@@ -30,7 +31,6 @@ npm run build
 
 ### Development Setup
 
-
 Spin up the application for development, all strings attached:
 
 ```sh
@@ -38,8 +38,6 @@ npm run dev
 ```
 
 Please checkout our [troubleshooting guide](./TROUBLESHOOTING.md) if you are experiencing issues when building from source.
-
-
 
 ## Contributing
 

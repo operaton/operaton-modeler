@@ -1,40 +1,38 @@
-## What's inside?
+# Operaton Modeler Patch Release
 
-<!-- link changelog if available and/or a version range (i.e. [`v4.9.0...develop`](https://github.com/camunda/camunda-modeler/compare/v4.9.0...develop)) -->
+## Patch release scope
 
-* ...
-* ...
-* ...
+<!--
+Choose the next patch version of a published Operaton Modeler release.
+The first patch after Operaton Modeler 1.0.0 would be 1.0.1.
+Link the fixes and relevant changelog entry.
+-->
 
-## Release Checklist
+* Target version:
+* Operaton release being maintained:
+* Included fixes:
 
-_To be done immediately after creating this issue._
+## Preparation
 
-* [ ] add Slack role to release manager (`@modeling-release-manager`)
+* [ ] confirm the explicit patch version using the [versioning policy](https://github.com/operaton/operaton-modeler/blob/HEAD/docs/versioning.md); do not derive it from upstream versions or tags
+* [ ] use a fresh clone of `https://github.com/operaton/operaton-modeler.git` and select the intended release commit; do not import upstream tags into the release clone
+* [ ] verify that the included changes are compatible fixes to the Operaton release being maintained
+* [ ] prepare the explicit target version with `npm run release -- <version> --yes`; this does not create a tag, push, or publish a release
+* [ ] synchronize `app/package.json`, `client/package.json`, `lerna.json`, and the workspace entries in `package-lock.json`; retain the root builder version `0.0.0`
+* [ ] update the Operaton changelog, release information, and third-party notices as appropriate
+* [ ] preview the license summary with `node tasks/send-license-book-summary.js --print --previous-version=<previous-operaton-tag>`
+* [ ] run `npm ci`, `npm run lint`, and `npm test`, and review dependency audit findings
+* [ ] build the application and test each fix and relevant regression behavior in the packaged application
+* [ ] test the release artifacts on Linux, macOS, and Windows
 
-_To be done to prepare and build the release._
+## Release
 
-* [ ] make sure changes in upstream libraries are merged and released
-  * `bpmn-js`, `dmn-js`, `*-properties-panel`, `*-moddle`, `camunda-bpmn-js`, `form-js`, ...
-* [ ] make sure dependencies to upstream libraries are updated and can be installed (`rm -rf node_modules && npm i && npm run all` works)
-* [ ] close all issues which are solved by dependency updates
-* [ ] ensure that the modeler is free of major security vulnerabilities via `npm audit`
-* [ ] smoke test to verify all diagrams can be created
-* [ ] update [Release Info](https://github.com/camunda/camunda-modeler/blob/master/client/src/plugins/version-info/ReleaseInfo.js)
-* [ ] update [`CHANGELOG`](https://github.com/camunda/camunda-modeler/blob/master/CHANGELOG.md)
-* [ ] create release (`npm run release`), cf. [release schema](https://github.com/bpmn-io/internal-docs/tree/master/release-schema)
-  * [ ] wait for [release build](https://github.com/camunda/camunda-modeler/actions/workflows/RELEASE.yml) to create the [artifacts](https://github.com/camunda/camunda-modeler/releases)
-* [ ] prepare a list of what was changed or needs to be tested
-* [ ] execute integration test, verifying fixed things are actually fixed
-* [ ] (optional) trigger QA for testing
+Follow the [patch release process](https://github.com/operaton/operaton-modeler/blob/HEAD/docs/.project/PATCH_RELEASE.md).
 
-_To be done to make the release publicly available._
-
-* [ ] publish release on [Github Releases](https://github.com/camunda/camunda-modeler/releases)
-* [ ] trigger [downloads page](https://camunda.com/download/modeler/) update via [marketing request form](https://confluence.camunda.com/display/MAR/Marketing+Request+Form)
-* [ ] add new version to [update server releases](https://github.com/camunda/camunda-modeler-update-server/blob/master/releases.json)
-* [ ] publish release via update server (push to `live`)
-
-_To be done post release._
-
-* [ ] communicate closed support related issues to [#ask-support](https://camunda.slack.com/archives/CHAC0L80M)
+* [ ] confirm that the explicit `v<version>` tag matches the intended Operaton version and tested commit
+* [ ] validate the tag against the version files with `node app/util/validate-release-version.js refs/tags/v<version>` and commit the reviewed release preparation
+* [ ] create the release tag in the clean origin clone without reusing or overwriting inherited upstream tags
+* [ ] verify the [release workflow](https://github.com/operaton/operaton-modeler/actions/workflows/RELEASE.yml) produced the expected draft and artifacts
+* [ ] validate the packaged fixes and displayed version before publication
+* [ ] publish the validated draft in [Operaton Modeler releases](https://github.com/operaton/operaton-modeler/releases)
+* [ ] mark the Operaton changelog entry as released and close the related release issue or milestone

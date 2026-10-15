@@ -16,7 +16,7 @@ import dmnTemplate from '../../../app/tabs/dmn/diagram.dmn';
 import formTemplate from '../../../app/tabs/form/initial.form';
 import { ENGINES, getLatestStable } from '../../Engines';
 
-const EXPORTER = { name: 'Operaton Modeler', version: '1.3.3' };
+const EXPORTER = { name: 'Operaton Modeler', version: '1.0.0' };
 const MODELER_NAMESPACE = 'http://operaton.org/schema/modeler/1.0';
 
 describe('Operaton file export with real modelers', function() {

@@ -1,9 +1,12 @@
-# Patch Release
+# Operaton Modeler Patch Release
 
-__[Draft a patch release](https://github.com/camunda/camunda-modeler/issues/new?body=%3C%21--%20apply%20template%20from%20https%3A%2F%2Fgithub.com%2Fcamunda%2Fcamunda-modeler%2Fblob%2Fmaster%2Fdocs%2F.project%2FPATCH_RELEASE_TEMPLATE.md%20--%3E&title=Release+Camunda+Modeler+vX.X.X&labels=release)__ or head over to [patch release documentation](./PATCH_RELEASE.md).
+A patch release contains compatible fixes to an existing Operaton Modeler release. The first Operaton release is planned as __1.0.0__; the first patch release after it would be __1.0.1__. Upstream Modeler patch versions do not determine the Operaton target version.
 
-## Template
+Create a release issue in the [Operaton Modeler repository](https://github.com/operaton/operaton-modeler/issues/new) and copy the [patch release template](./PATCH_RELEASE_TEMPLATE.md).
 
-Checkout the [template](./PATCH_RELEASE_TEMPLATE.md) for activities to cut a Camunda Modeler minor or major release. For patch releases turn to [this documentation](./PATCH_RELEASE.md).
+Follow the [release process](./RELEASE.md) and [versioning policy](../versioning.md), with these additional checks:
 
-You may create a blank issue and copy the template into it.
+* Select the explicit Operaton patch version from the Operaton release being maintained.
+* Verify that the release contains compatible fixes and document the issues they address.
+* Test each affected behavior and run the relevant regression and integration checks on the packaged application.
+* Keep all Operaton application version sources synchronized, and publish the artifacts in the Operaton repository after validation.
