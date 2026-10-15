@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing to this project!
 
-To ensure consistency across all repositories, we maintain a single set of **Contribution and Governance Guidelines** in the main Operaton repository.
+English is the project language. Please write all project documentation in English.
 
-Please refer to the main **[CONTRIBUTING.md](https://github.com/operaton/operaton/blob/main/CONTRIBUTING.md)** file.
+To ensure consistency across all repositories, we maintain a single set of __Contribution and Governance Guidelines__ in the main Operaton repository.
+
+Please refer to the main __[CONTRIBUTING.md](https://github.com/operaton/operaton/blob/main/CONTRIBUTING.md)__ file.

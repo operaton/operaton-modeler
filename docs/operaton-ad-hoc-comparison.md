@@ -1,12 +1,12 @@
-# Operaton-Ad-hoc-Abgleich – 15.10.2026
+# Operaton ad hoc comparison – 15 October 2026
 
-Die Ad-hoc-Bearbeitung ist für den Vertrag aus [Operaton PR #3207](https://github.com/operaton/operaton/pull/3207) vorbereitet und standardmäßig ausgeschaltet. Der geprüfte PR ist **offen und Draft**, Head `a493744eb9c3a21f36de7a13c323c3109c67fc1a`, Zielbranch `main`, zuletzt aktualisiert am 12.10.2026. Die `@since 2.2`-Annotationen belegen keine Verfügbarkeit in einer veröffentlichten Engine. Zur Ausführung ist ein Engine-Build mit diesem PR erforderlich; der Modeler liefert keine entsprechende Engine mit.
+Ad hoc editing is prepared for the contract defined in [Operaton PR #3207](https://github.com/operaton/operaton/pull/3207) and is disabled by default. The reviewed PR is __open and in draft__, with head `a493744eb9c3a21f36de7a13c323c3109c67fc1a`, targeting `main`, and was last updated on 12 October 2026. The `@since 2.2` annotations do not establish availability in a released engine. Execution requires an engine build that includes this PR; the Modeler does not bundle such an engine.
 
-Verglichen wurde die Fluxnova-Modeler-Erweiterung aus `upstream/develop` bei `eb719138` mit dem Operaton-[Parser](https://github.com/operaton/operaton/blob/a493744eb9c3a21f36de7a13c323c3109c67fc1a/engine/src/main/java/org/operaton/bpm/engine/impl/bpmn/parser/BpmnParse.java), der [Laufzeitimplementierung](https://github.com/operaton/operaton/blob/a493744eb9c3a21f36de7a13c323c3109c67fc1a/engine/src/main/java/org/operaton/bpm/engine/impl/bpmn/behavior/AdHocSubProcessActivityBehavior.java) und der [Engine-Dokumentation](https://github.com/operaton/operaton/blob/a493744eb9c3a21f36de7a13c323c3109c67fc1a/docs/features/ad-hoc-subprocesses.md).
+The Fluxnova Modeler extension from `upstream/develop` at `eb719138` was compared with the Operaton [parser](https://github.com/operaton/operaton/blob/a493744eb9c3a21f36de7a13c323c3109c67fc1a/engine/src/main/java/org/operaton/bpm/engine/impl/bpmn/parser/BpmnParse.java), [runtime implementation](https://github.com/operaton/operaton/blob/a493744eb9c3a21f36de7a13c323c3109c67fc1a/engine/src/main/java/org/operaton/bpm/engine/impl/bpmn/behavior/AdHocSubProcessActivityBehavior.java), and [engine documentation](https://github.com/operaton/operaton/blob/a493744eb9c3a21f36de7a13c323c3109c67fc1a/docs/features/ad-hoc-subprocesses.md).
 
-## Aktivieren
+## Enabling the feature
 
-In der persönlichen Datei `<Benutzerverzeichnis>/resources/flags.json` ergänzen und den Modeler neu starten:
+Add the following setting to your personal `<user data directory>/resources/flags.json` file and restart the Modeler:
 
 ```json
 {
@@ -14,28 +14,28 @@ In der persönlichen Datei `<Benutzerverzeichnis>/resources/flags.json` ergänze
 }
 ```
 
-Das Benutzerverzeichnis ist standardmäßig unter macOS `~/Library/Application Support/operaton-modeler`, unter Windows `%APPDATA%\operaton-modeler` und unter Linux `$XDG_CONFIG_HOME/operaton-modeler` beziehungsweise `~/.config/operaton-modeler`. Ein mit `--user-data-dir` gewähltes Verzeichnis ersetzt diesen Pfad. Vorhandene Einstellungen in der JSON-Datei bleiben bestehen.
+The default user data directory is `~/Library/Application Support/operaton-modeler` on macOS, `%APPDATA%\operaton-modeler` on Windows, and `$XDG_CONFIG_HOME/operaton-modeler` or `~/.config/operaton-modeler` on Linux. A directory selected with `--user-data-dir` replaces this path. Preserve any existing settings in the JSON file.
 
-Alternativ den Modeler mit `--enable-ad-hoc=true` starten. Die explizite Schreibweise mit `=true` verhindert, dass ein folgender Dateipfad als Flag-Wert gelesen wird. `--enable-ad-hoc=false` oder der JSON-Wert `false` deaktiviert die Erweiterung; CLI-Werte überschreiben die Datei. Akzeptiert werden ausschließlich Boolean `true` und die Zeichenfolge `"true"`.
+Alternatively, start the Modeler with `--enable-ad-hoc=true`. The explicit `=true` syntax prevents a subsequent file path from being interpreted as the flag value. `--enable-ad-hoc=false` or the JSON value `false` disables the extension; CLI values override the file. Only the Boolean value `true` and the string `"true"` enable the feature.
 
-Bei einem ausgewählten BPMN-Ad-hoc-Subprozess erscheint die Gruppe **Operaton ad hoc (experimental)**. Die vorhandene BPMN-Gruppe **Completion** bleibt erhalten. Ohne Flag fehlt nur die zusätzliche Gruppe; vorhandene Ad-hoc-Attribute und Properties bleiben beim Öffnen und Speichern erhalten. Das Flag ändert die unterstützte Engine-Versionsauswahl nicht.
+Selecting a BPMN ad hoc subprocess shows the __Operaton ad hoc (experimental)__ group. The existing BPMN __Completion__ group remains available. Without the flag, only the additional group is hidden; existing ad hoc attributes and properties are preserved when opening and saving files. The flag does not change the selection of supported engine versions.
 
-## XML-Vertrag und Modeler-Abbildung
+## XML contract and Modeler mapping
 
-Alle Operaton-Erweiterungen verwenden `http://operaton.org/schema/1.0/bpmn`. Standard-BPMN-Felder bleiben im BPMN-Namensraum beziehungsweise unqualifizierte Attribute.
+All Operaton extensions use `http://operaton.org/schema/1.0/bpmn`. Standard BPMN fields remain in the BPMN namespace or use unqualified attributes.
 
-| Feld | Darstellung für Operaton | Default und Bedeutung | Modeler-Anpassung |
-| --- | --- | --- | --- |
-| Subprozess | `bpmn:adHocSubProcess` | Echte Ad-hoc-Aktivität | Vorhandenen BPMN-Elementtyp verwenden |
-| Ordering | Unqualifiziertes Attribut `ordering` | `Parallel`; alternativ `Sequential` | Auswahl ergänzt; in der ursprünglichen Erweiterung fehlte sie |
-| Completion condition | BPMN-Kindelement `completionCondition`, gegebenenfalls `xsi:type="bpmn:tFormalExpression"` | Ohne Bedingung gilt die Auto-Complete-Regel | Vorhandenes Standardfeld wiederverwenden |
-| Cancel remaining instances | Unqualifiziertes Attribut `cancelRemainingInstances` | `true` | Vorhandenes Standardfeld wiederverwenden |
-| Initial activities | `operaton:properties` / `operaton:property`, `name="activeTasksCollection"`, `value="…"` | Fehlend, leer oder Ergebnis `null`: keine initiale Aktivierung | Operaton-Properties statt eigener Upstream-Typen; übrige Properties erhalten |
-| Auto complete | Attribut `operaton:autoComplete` direkt am Ad-hoc-Subprozess | `true`; `false` hält ohne Completion Condition den Scope offen | Permanenter Moddle-Descriptor, zusätzliches Checkbox-Feld hinter Flag |
+| Field                      | Operaton representation                                                                       | Default and meaning                                                          | Modeler change                                                                      |
+| -------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Subprocess                 | `bpmn:adHocSubProcess`                                                                        | An actual ad hoc activity                                                    | Use the existing BPMN element type                                                  |
+| Ordering                   | Unqualified `ordering` attribute                                                              | `Parallel`; alternatively, `Sequential`                                      | Add a selector, which was missing from the original extension                       |
+| Completion condition       | BPMN child element `completionCondition`, optionally with `xsi:type="bpmn:tFormalExpression"` | Without a condition, the auto-complete rule applies                          | Reuse the existing standard field                                                   |
+| Cancel remaining instances | Unqualified `cancelRemainingInstances` attribute                                              | `true`                                                                       | Reuse the existing standard field                                                   |
+| Initial activities         | `operaton:properties` / `operaton:property`, `name="activeTasksCollection"`, `value="…"`      | Missing, empty, or a `null` result: no initial activation                    | Use Operaton properties instead of custom upstream types; preserve other properties |
+| Auto complete              | `operaton:autoComplete` attribute directly on the ad hoc subprocess                           | `true`; `false` keeps the scope open when no completion condition is defined | Permanent moddle descriptor, with an additional checkbox enabled by the flag        |
 
-`autoComplete` als Extension-Property ist im PR ausdrücklich ein Parsefehler. Es wird ausschließlich als Attribut geschrieben. Der Descriptor verwendet intern weiterhin den bestehenden `camunda`-Alias der Plattformbibliotheken; die URI ist Operaton und der vorhandene Speichervorgang normalisiert das XML-Präfix auf `operaton`. Es werden keine zusätzlichen Upstream-Namensräume oder Restricted-Variable-Erweiterungen registriert.
+The PR explicitly treats defining `autoComplete` as an extension property as a parse error. It is written only as an attribute. Internally, the descriptor continues to use the platform libraries' existing `camunda` alias; its URI is Operaton, and the existing save operation normalizes the XML prefix to `operaton`. No additional upstream namespaces or restricted variable extensions are registered.
 
-Beispiel für den relevanten XML-Ausschnitt:
+Example of the relevant XML fragment:
 
 ```xml
 <bpmn:adHocSubProcess id="review" ordering="Sequential"
@@ -51,23 +51,23 @@ Beispiel für den relevanten XML-Ausschnitt:
 </bpmn:adHocSubProcess>
 ```
 
-## Laufzeitunterschiede, die beim Modellieren relevant sind
+## Runtime differences relevant to modeling
 
-| Thema | Vertrag des geprüften Operaton-PRs |
-| --- | --- |
-| Initiale Aktivierung | `activeTasksCollection` wählt direkte geeignete Aktivitäten ohne eingehende Sequenzflüsse. `${taskIds}` referenziert eine Variable beziehungsweise Expression; `taskA,taskB` ist eine literale ID-Liste. Das Expression-Ergebnis darf ein String oder eine Java-Collection sein. Ein bloßer Variablenname wird als Aktivitäts-ID gelesen. |
-| Leere Auswahl | Keine Aufgaben starten automatisch. Der Ad-hoc-Scope bleibt für API-Aufrufe offen, sofern keine Completion Condition bereits erfüllt ist. |
-| Sequenziell | Initial höchstens eine unterschiedliche Aktivität; später höchstens eine laufende direkte Aktivität. Ein eingebetteter Subprozess oder eine Multi-Instance-Aktivität zählt dabei als eine äußere Aktivität. |
-| Nachgelagerte Aktivitäten | Eingehende Sequenzflüsse aktivieren die Zielaktivität nicht automatisch. Sie machen sie auswählbar; die Laufzeit-API muss sie explizit starten. Das gilt für Parallel und Sequential. Gateways und Zwischenereignisse routen regulär weiter. |
-| Auto complete | Ohne Completion Condition: Erst nachdem Arbeit begonnen hat und keine offenen Kind-Ausführungen verbleiben, wird automatisch abgeschlossen. Auch auswählbare, noch nicht gestartete Arbeit und wartende Routing-Ausführungen verhindern diesen Abschluss. „Nach den initialen Aufgaben“ wäre als Hilfetext unvollständig. |
-| Completion condition | Wird unter anderem beim Eintritt sowie nach erfolgreichem Aktivitätsabschluss vor den ausgehenden Flüssen geprüft. Einmal erfüllt, bleibt die Bedingung wirksam und verhindert weitere Aktivierung. Bei `cancelRemainingInstances=true` wird übrige Arbeit beendet; bei `false` darf bereits laufende Arbeit auslaufen. Noch nicht gestartete, auswählbare Arbeit wird verworfen. |
-| Expliziter Abschluss | Bei `cancelRemainingInstances=false` und noch laufender Arbeit wird der API-Aufruf abgewiesen; er startet keinen späteren Abschluss. Bei `true` wird laufende Arbeit abgebrochen. |
-| Modellgrenzen | Keine direkten Start-/Endereignisse im Ad-hoc-Subprozess; kein `triggeredByEvent=true`. Verschachtelte reguläre Subprozesse behalten ihre eigenen Regeln. |
+| Topic                 | Contract of the reviewed Operaton PR                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Initial activation    | `activeTasksCollection` selects eligible direct child activities without incoming sequence flows. `${taskIds}` references a variable or expression; `taskA,taskB` is a literal list of IDs. The expression result may be a string or a Java collection. A bare variable name is interpreted as an activity ID.                                                                                                           |
+| Empty selection       | No tasks start automatically. The ad hoc scope remains open for API calls unless a completion condition is already satisfied.                                                                                                                                                                                                                                                                                            |
+| Sequential execution  | At most one distinct activity is initially selected; subsequently, at most one direct child activity may be running. An embedded subprocess or a multi-instance activity counts as one outer activity.                                                                                                                                                                                                                   |
+| Downstream activities | Incoming sequence flows do not automatically activate the target activity. They make it available for selection; the runtime API must explicitly start it. This applies to both Parallel and Sequential ordering. Gateways and intermediate events continue routing normally.                                                                                                                                            |
+| Auto complete         | Without a completion condition, automatic completion occurs only after work has started and no open child executions remain. Activities that are available for selection but have not yet started, as well as waiting routing executions, also prevent completion. "After the initial tasks" would be incomplete as help text.                                                                                           |
+| Completion condition  | The condition is evaluated on entry and, among other points, after successful activity completion, before outgoing flows are processed. Once satisfied, it remains effective and prevents further activation. With `cancelRemainingInstances=true`, remaining work is terminated; with `false`, work already in progress may finish. Activities that are available for selection but have not yet started are discarded. |
+| Explicit completion   | With `cancelRemainingInstances=false` and work still in progress, the API call is rejected; it does not schedule completion for later. With `true`, running work is canceled.                                                                                                                                                                                                                                            |
+| Model constraints     | No direct child start or end events in the ad hoc subprocess; no `triggeredByEvent=true`. Nested regular subprocesses retain their own rules.                                                                                                                                                                                                                                                                            |
 
-Die RuntimeService-Methoden heißen `getStartableAdHocActivities`, `triggerAdHocActivities` und `completeAdHocSubProcess`. REST bietet `GET /execution/{id}/ad-hoc-activities`, `POST /execution/{id}/ad-hoc-activities/trigger` und `POST /execution/{id}/ad-hoc-activities/complete`. Die ID bezeichnet die Ausführung des eingetretenen Ad-hoc-Scopes. Die Modeler-Erweiterung bearbeitet das Modell; eine Laufzeitsteuerung gehört nicht zu dieser Änderung.
+The RuntimeService methods are `getStartableAdHocActivities`, `triggerAdHocActivities`, and `completeAdHocSubProcess`. The REST API provides `GET /execution/{id}/ad-hoc-activities`, `POST /execution/{id}/ad-hoc-activities/trigger`, and `POST /execution/{id}/ad-hoc-activities/complete`. The ID identifies the execution of the entered ad hoc scope. The Modeler extension edits the model; runtime control is outside the scope of this change.
 
-Die Engine stellt lokale Kontextvariablen wie `nrOfActiveAdHocActivities`, `nrOfCompletedAdHocActivities`, `nrOfEnabledAdHocActivities`, `adHocEnabledActivityIds`, `adHocActiveActivityIds`, `adHocCompletedActivityIds`, `adHocLastCompletedActivityId` und `adHocCompletionConditionSatisfied` bereit. Diese Engine-Werte dürfen Geschäftslogik und Expressions nicht überschreiben.
+The engine provides local context variables such as `nrOfActiveAdHocActivities`, `nrOfCompletedAdHocActivities`, `nrOfEnabledAdHocActivities`, `adHocEnabledActivityIds`, `adHocActiveActivityIds`, `adHocCompletedActivityIds`, `adHocLastCompletedActivityId`, and `adHocCompletionConditionSatisfied`. Business logic and expressions must not overwrite these engine values.
 
-## Prüfgrenzen
+## Validation limits
 
-Der Abgleich prüft den XML-Vertrag anhand des festgehaltenen PR-Heads. Modeler-Integrationstests prüfen Flag-Verhalten, UI-Eingaben, Namespace-Ausgabe, Undo/Redo und XML-Roundtrips einschließlich erneutem Öffnen mit deaktivierter Erweiterung. Die Gesamtergebnisse stehen im [Upstream-Prüfbericht](upstream-sync-2026-10-15.md). Ein Deployment oder eine Prozessausführung gegen einen mit PR #3207 gebauten Server wurde in dieser Sitzung nicht durchgeführt.
+This comparison checks the XML contract against the recorded PR head. Modeler integration tests cover flag behavior, UI inputs, namespace output, undo/redo, and XML roundtrips, including reopening files with the extension disabled. Overall results are recorded in the [upstream validation report](upstream-sync-2026-10-15.md). No deployment or process execution against a server built with PR [#3207](https://github.com/operaton/operaton/pull/3207) was performed during this session.

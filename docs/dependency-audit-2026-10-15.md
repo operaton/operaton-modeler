@@ -1,72 +1,72 @@
-# Dependency-Audit – 15.10.2026
+# Dependency audit – 15 October 2026
 
-Die Abhängigkeiten nach dem [Upstream-Abgleich](upstream-sync-2026-10-15.md) wurden aktualisiert und auf Kompatibilität geprüft. Produktionsabhängigkeiten und das separate Plugin-Lockfile melden keine bekannten npm-Audit-Befunde. Im Entwicklungsbereich bleibt eine ungepatchte Schwachstelle mit neun Paketmeldungen bestehen.
+Dependencies were updated and checked for compatibility after the [upstream sync](upstream-sync-2026-10-15.md). Production dependencies and the separate plugin lockfile have no known npm audit findings. One unpatched vulnerability remains in development dependencies, reported against nine packages.
 
-## Ergebnis
+## Results
 
-| Bereich | Vor Bereinigung | Nach Bereinigung |
-| --- | --- | --- |
-| Haupt-Lockfile, einschließlich Entwicklungswerkzeugen | 102: 3 kritisch, 55 hoch, 41 moderat, 3 niedrig | 9 hoch; alle dieselbe `braces`-Schwachstelle bzw. abhängige Pakete |
-| Produktionsabhängigkeiten (`npm audit --omit=dev`) | 34: 13 hoch, 20 moderat, 1 niedrig | 0 |
-| Separates Lockfile `resources/plugins` | 6: 1 kritisch, 1 hoch, 3 moderat, 1 niedrig | 0 |
+| Scope                                            | Before remediation                           | After remediation                                                                 |
+| ------------------------------------------------ | -------------------------------------------- | --------------------------------------------------------------------------------- |
+| Main lockfile, including development tools       | 102: 3 critical, 55 high, 41 moderate, 3 low | 9 high; all concern the same `braces` vulnerability or packages that depend on it |
+| Production dependencies (`npm audit --omit=dev`) | 34: 13 high, 20 moderate, 1 low              | 0                                                                                 |
+| Separate `resources/plugins` lockfile            | 6: 1 critical, 1 high, 3 moderate, 1 low     | 0                                                                                 |
 
-Die Produktionszahlen sind eine Teilmenge des Haupt-Lockfiles und dürfen nicht dazuaddiert werden. Der vollständige `npm audit` endet wegen des dokumentierten Restbefunds weiterhin mit Exit-Code 1; die beiden anderen Audits enden mit Exit-Code 0.
+The production counts are a subset of the main lockfile counts and must not be added to them. The full `npm audit` still exits with code 1 because of the documented remaining finding; the other two audits exit with code 0.
 
-## Änderungen
+## Changes
 
-- Kompatible Sicherheitsupdates im Haupt- und Plugin-Lockfile übernommen.
-- Camunda SDK auf 8.8.18 aktualisiert. Die verwendeten Zeebe-APIs bleiben verfügbar; die alte Windows-Zertifikatskette über `win-ca`/`node-forge` entfällt. Das SDK nutzt die System-Zertifikatsfunktionen des aktuellen Node-Runtimes.
-- Sentry für Main- und Renderer-Prozess auf 10.76.2 aktualisiert. Die Frame-Normalisierung verwendet die SDK-eigene `rewriteFramesIntegration`; das alte Integrationspaket entfällt. Lokale Unix- und Windows-Dateipfade werden weiterhin anonymisiert. Crashreport-Einwilligung und DSN bleiben Voraussetzung; die neuen Log- und Metrikfunktionen sind ausdrücklich deaktiviert.
-- Die produktive Dateisuche von `fast-glob` auf `glob` 13.0.6 umgestellt. Der offizielle ungebündelte Export `glob/raw` ermöglicht die vollständige Erfassung der tatsächlich verwendeten Abhängigkeiten und ihrer Lizenzen. Suchpfad-Priorität, Reihenfolge beim Zusammenführen von Konfigurationen, relative Pfade, Dotfiles, Ausschlüsse, Symlinks und Groß-/Kleinschreibung sind durch Regressionstests abgesichert.
-- Den veralteten `react-svg-loader` durch SVGR 8.1.0 ersetzt. React-Default-Exports, `viewBox`, Titel und weitergereichte Eigenschaften bleiben erhalten.
-- Puppeteer auf 25.14.0 aktualisiert; Karma wartet auf die nun asynchrone Browserpfad-Ermittlung. Mocha 12, NYC 18, Jest-JUnit 17, Nodemailer 10 und Sentry Webpack Plugin 5 aktualisiert.
-- Das ungenutzte `electron-publisher-s3` entfernt. S3-Veröffentlichungen werden bereits durch den aktuellen electron-builder unterstützt; die alte AWS-SDK-/Builder-Abhängigkeitskette entfällt.
-- CI-Installation auf `npm ci` vereinheitlicht, zusätzliche ungebundene Puppeteer-Installationen und `NODE_TLS_REJECT_UNAUTHORIZED=0` entfernt.
-- Die Drittanbieterhinweise aus den aktualisierten App- und Client-Abhängigkeiten neu erzeugt.
+* Applied compatible security updates to the main and plugin lockfiles.
+* Updated Camunda SDK to 8.8.18. The Zeebe APIs in use remain available; the old Windows certificate dependency chain through `win-ca`/`node-forge` has been removed. The SDK uses the system certificate APIs provided by the current Node runtime.
+* Updated Sentry for the main and renderer processes to 10.76.2. Frame normalization uses the SDK's `rewriteFramesIntegration`; the old integration package has been removed. Local Unix and Windows file paths remain anonymized. Crash reporting consent and a DSN are still required; the new logging and metrics features are explicitly disabled.
+* Migrated production file searches from `fast-glob` to `glob` 13.0.6. The official unbundled `glob/raw` export allows all dependencies actually used, and their licenses, to be included in the inventory. Regression tests cover search path priority, configuration merge order, relative paths, dotfiles, exclusions, symlinks, and case sensitivity.
+* Replaced the obsolete `react-svg-loader` with SVGR 8.1.0. React default exports, `viewBox`, titles, and forwarded properties are preserved.
+* Updated Puppeteer to 25.14.0; Karma awaits browser path resolution, which is now asynchronous. Updated to Mocha 12, NYC 18, Jest-JUnit 17, Nodemailer 10, and Sentry Webpack Plugin 5.
+* Removed the unused `electron-publisher-s3`. The current electron-builder already supports S3 publishing; the old AWS SDK/builder dependency chain has been removed.
+* Standardized CI installation on `npm ci` and removed additional unpinned Puppeteer installations and `NODE_TLS_REJECT_UNAUTHORIZED=0`.
+* Regenerated third-party notices from the updated app and client dependencies.
 
-## Gezielt begrenzte Overrides
+## Scoped overrides
 
-| Abhängigkeit | Override | Kompatibilitätsnachweis |
-| --- | --- | --- |
-| `@electron/get` → `global-agent` → `roarr` | exakt 6.0.0 | Echte Downloads mit HTTP-Proxy, HTTPS-CONNECT, eigener vertrauenswürdiger CA, SNI, `NO_PROXY`, SHA256 und aktivem Logging. Unbekannte Zertifikate werden abgelehnt. |
-| `@istanbuljs/load-nyc-config` → `js-yaml` | ^4.3.2 | Reales Laden von YAML-Konfigurationen einschließlich Vererbung, Arrays, Alias-/Merge-Keys und Normalisierung von Optionsnamen. |
-| `nx` → `undici` | ^7.30.0 | Sicherheitsupdate innerhalb der bereits verwendeten Hauptversion. |
-| `unified-args` → `chokidar` | ^4.0.3 | Reales Remark-Watching mit Glob-Eingabe, Leerzeichen im Dateinamen, Dateiänderung, erneuter Ausgabe und sauberem Beenden. |
+| Dependency                                 | Override      | Compatibility evidence                                                                                                                                       |
+| ------------------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@electron/get` → `global-agent` → `roarr` | exactly 6.0.0 | Actual downloads using an HTTP proxy, HTTPS CONNECT, a custom trusted CA, SNI, `NO_PROXY`, SHA256, and enabled logging. Untrusted certificates are rejected. |
+| `@istanbuljs/load-nyc-config` → `js-yaml`  | ^4.3.2        | Actual YAML configuration loading, including inheritance, arrays, alias/merge keys, and option name normalization.                                           |
+| `nx` → `undici`                            | ^7.30.0       | Security update within the major version already in use.                                                                                                     |
+| `unified-args` → `chokidar`                | ^4.0.3        | Actual Remark watch operation with glob input, a filename containing spaces, file changes, regenerated output, and clean termination.                        |
 
-`global-agent` 4.1.3 wurde wegen einer im HTTPS-Proxy-Test nachgewiesenen Regression bei CA-/SNI-Optionen nicht übernommen. Die Aktualisierung ausschließlich des Loggers erhält das funktionierende Proxy-Verhalten von `global-agent` 3 und entfernt dessen verwundbare Formatierungsabhängigkeit. Roarr ist wegen seiner zwischen Hauptversionen veränderten Export-API exakt festgelegt.
+`global-agent` 4.1.3 was not adopted because the HTTPS proxy test exposed a regression affecting CA/SNI options. Updating only the logger preserves the working proxy behavior of `global-agent` 3 and removes its vulnerable formatting dependency. Roarr is pinned to an exact version because its export API changes between major versions.
 
-## Verbleibender Befund
+## Remaining finding
 
-[GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) betrifft `braces` bis einschließlich der aktuell veröffentlichten Version 3.0.3. Extrem tief verschachtelte Muster können einen Stack-Overflow und damit einen Prozessabbruch verursachen. Zum Prüfzeitpunkt existiert keine veröffentlichte korrigierte Version.
+[GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) affects `braces` up to and including the latest published version, 3.0.3. Extremely deeply nested patterns can cause a stack overflow and terminate the process. No patched version had been published at the time of this audit.
 
-Die neun Meldungen betreffen `braces`, `chokidar`, `del`, `del-cli`, `electron-reloader`, `fast-glob`, `globby`, `karma` und `micromatch`. Alle betroffenen Einträge sind im Lockfile Entwicklungsabhängigkeiten:
+The nine findings concern `braces`, `chokidar`, `del`, `del-cli`, `electron-reloader`, `fast-glob`, `globby`, `karma`, and `micromatch`. All affected entries are development dependencies in the lockfile:
 
-- Karma verarbeitet die im Repository festgelegten Testmuster.
-- `del`/`del-cli` verwenden die festgelegten lokalen Bereinigungsmuster der Build-Skripte.
-- `electron-reloader` deaktiviert die Glob-Auswertung mit `disableGlobbing: true`.
+* Karma processes the test patterns defined in the repository.
+* `del`/`del-cli` use the fixed local cleanup patterns defined in the build scripts.
+* `electron-reloader` disables glob expansion with `disableGlobbing: true`.
 
-Modellinhalte aus BPMN-, DMN-, CMMN- oder Form-Dateien werden diesen Werkzeugen nicht als Muster übergeben. Der Befund bleibt für Entwicklungswerkzeuge offen; er wird weder durch Audit-Ausnahmen ausgeblendet noch durch inkompatible Downgrades verdeckt. Nach Veröffentlichung eines kompatiblen Fixes sind die betroffenen Werkzeugketten und das Lockfile erneut zu aktualisieren.
+Model content from BPMN, DMN, CMMN, or Form files is not passed to these tools as patterns. The finding remains open for development tools; it is neither excluded from the audit nor hidden through incompatible downgrades. Once a compatible fix is published, the affected toolchains and lockfile must be updated again.
 
-## Validierung
+## Validation
 
-Tests mit Node.js 24.19.0 auf macOS/Apple Silicon:
+Tests with Node.js 24.19.0 on macOS/Apple Silicon:
 
-| Suite | Bestanden | Ausgelassen |
-| --- | ---: | ---: |
-| App/Mocha | 219 | 7 |
-| Client/Karma | 1618 | 16 |
-| Echte Modellierer/Export-Roundtrips | 91 | 0 |
-| Jest | 1 | 0 |
-| Gesamt | 1929 | 23 |
+| Suite                             | Passed | Skipped |
+| --------------------------------- | -----: | ------: |
+| App/Mocha                         |    219 |       7 |
+| Client/Karma                      |   1618 |      16 |
+| Actual modelers/export roundtrips |     91 |       0 |
+| Jest                              |      1 |       0 |
+| Total                             |   1929 |      23 |
 
-Der Gesamtlauf wurde durch gezielte Wiederholungen nach den abschließenden Änderungen ergänzt. Zusätzlich wurden alle 35 React-SVGs mit dem tatsächlichen Loader kompiliert und gerendert sowie die oben beschriebenen Proxy-, YAML- und Watch-Prüfungen durchgeführt.
+The full run was supplemented by targeted reruns after the final changes. All 35 React SVGs were also compiled and rendered with the actual loader, and the proxy, YAML, and watch checks described above were performed.
 
-Das separate Plugin-Projekt wurde mit `npm ci` installiert; alle vier Plugin-Builds waren erfolgreich. `npm run lint` und `git diff --check` sind erfolgreich.
+The separate plugin project was installed with `npm ci`; all four plugin builds succeeded. `npm run lint` and `git diff --check` passed.
 
-Der abschließende Aufruf `npm run build -- --mac --linux --no-compress` war einschließlich Preload-, Client-, Distro-Build und Archivprüfung erfolgreich: macOS x64 und arm64 (je DMG und ZIP) sowie Linux x64 (tar.gz). Die gepackte arm64-App wurde nativ gestartet; eine BPMN-Datei wurde erstellt, benannt, gespeichert, geschlossen und erneut geöffnet. Name, Operaton-Namespace und Ausführungsplattform blieben erhalten; die Symbole wurden visuell geprüft.
+The final `npm run build -- --mac --linux --no-compress` command succeeded, including preload, client, and distribution builds and archive verification: macOS x64 and arm64 (DMG and ZIP for each), and Linux x64 (tar.gz). The packaged arm64 app was launched natively; a BPMN file was created, named, saved, closed, and reopened. Its name, Operaton namespace, and execution platform were preserved; icons were checked visually.
 
-Die Lizenzhinweise wurden erfolgreich neu erzeugt. Für im npm-Paket fehlende Sentry-, Formik- und Nodable-Lizenztexte sind belegte Quellen hinterlegt. Zwei bereits vorhandene Warnungen bleiben: `@bpmn-io/semver-compat` und `bpmn-js-copy-as-image` deklarieren MIT, enthalten aber auch in den jeweiligen veröffentlichten Git-Revisionen keinen vollständigen Lizenztext. Einzelne Preact-Unterpakete enthalten außerdem keine eigenen Repository-Angaben.
+License notices were successfully regenerated. Verified sources are recorded for Sentry, Formik, and Nodable license texts missing from their npm packages. Two pre-existing warnings remain: `@bpmn-io/semver-compat` and `bpmn-js-copy-as-image` declare MIT but do not include the full license text, even in their corresponding published Git revisions. Some Preact subpackages also lack their own repository metadata.
 
-Die macOS-Testpakete werden ohne Signatur und Notarisierung erstellt. Windows und Linux wurden nicht nativ gestartet. Deployment und Prozessstart gegen einen laufenden Operaton-Server wurden nicht live geprüft; die vorhandenen API-/UI-Tests verwenden Mocks.
+The macOS test packages are built without signing or notarization. Windows and Linux were not launched natively. Deployment and process start against a running Operaton server were not tested live; the existing API/UI tests use mocks.
 
-Audit-JSONs und lokale Prüfprotokolle dieser Sitzung liegen unter `/tmp/operaton-modeler-audit-20261015/`.
+Audit JSON files and local validation logs from this session are stored under `/tmp/operaton-modeler-audit-20261015/`.
