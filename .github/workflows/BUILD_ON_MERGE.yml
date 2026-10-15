@@ -4,7 +4,7 @@ permissions:
 on:
   pull_request:
     types: [closed]
-    branches: [develop]
+    branches: [main]
   workflow_dispatch:
 
 jobs:

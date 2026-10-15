@@ -35,16 +35,16 @@ _To be done after code freeze to prepare and test the release._
   * `bpmn-js`, `dmn-js`, `*-properties-panel`, `*-moddle`, `camunda-bpmn-js`, `form-js`, ...
 * [ ] make sure potential new engine versions are available and marked correctly (alpha/stable)
 * [ ] make sure dependencies to upstream libraries are updated and can be installed (`rm -rf node_modules && npm i && npm run all` works)
-* [ ] verify `develop` is up to date with `main`: `git checkout main && git pull && git checkout develop && git merge main`
+* [ ] update the main development branch: `git checkout main && git pull --ff-only origin main`
 * [ ] close all issues which are solved by dependency updates
 * [ ] ensure that the modeler is free of major security vulnerabilities via `npm audit`
 * [ ] smoke test to verify all diagrams can be created
 * [ ] update [Release Info](https://github.com/camunda/camunda-modeler/blob/develop/client/src/plugins/version-info/ReleaseInfo.js)
   * [ ] create a draft following [our guidelines](https://github.com/bpmn-io/internal-docs/blob/main/releases/modeler/CAMUNDA_MODELER.md#whats-new-communication) and based on priorities which were aligned with the team (PM, UX, and Engineering side)
-  * [ ] create PR to merge the draft into `develop`. Assign to PM, UX and Engineering for review
+  * [ ] create PR to merge the draft into `main`. Assign to PM, UX and Engineering for review
 * [ ] update [`CHANGELOG`](https://github.com/camunda/camunda-modeler/blob/develop/CHANGELOG.md)
 * [ ] compile a list of blog worthy changes as input to [release blog](https://confluence.camunda.com/pages/viewpage.action?pageId=178590449)
-* [ ] merge to main: `git checkout main && git merge develop`
+* [ ] ensure all release changes are merged into `main`, then update the local branch: `git checkout main && git pull --ff-only origin main`
 * [ ] create release candidate (`npm run release:rc -- [preminor|premajor|prepatch]`), cf. [release schema](https://github.com/bpmn-io/internal-docs/blob/main/releases/RELEASE_SCHEMA.md)
   * [ ] wait for [release build](https://github.com/camunda/camunda-modeler/actions/workflows/RELEASE.yml) to create the [artifacts](https://github.com/camunda/camunda-modeler/releases)
 * [ ] execute [integration test](https://github.com/camunda/camunda-modeler/blob/main/docs/.project/INTEGRATION_TEST.md) on [released artifacts](https://github.com/camunda/camunda-modeler/releases)

@@ -18,7 +18,7 @@ Experimental Operaton ad-hoc subprocess editing is disabled by default. See the 
 Use Node.js 24.15 or newer within the 24.x release line, matching the CI workflows. Build the app in a Posix environment. On Windows that is Git Bash or WSL. Make sure you have installed all the [necessary tools](https://github.com/nodejs/node-gyp#installation) to install and compile Node.js C++ addons.
 
 ```sh
-# checkout a tag
+# checkout the main development branch
 git checkout main
 
 # install dependencies

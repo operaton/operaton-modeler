@@ -43,8 +43,6 @@ function getBuildArtifactName(baseVersion) {
 
   switch (branchType) {
   case 'main':
-    return baseVersion;
-  case 'develop':
     return `${baseVersion}-b${BUILD_NUMBER}`;
   case 'release':
     return `${baseVersion}-rc${BUILD_NUMBER}`;

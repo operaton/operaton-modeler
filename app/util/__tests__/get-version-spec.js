@@ -29,18 +29,9 @@ describe('GetVersion', function() {
     clock.restore();
   });
 
-  it('should retrieve version for a "main" branch build', function() {
+  it('should retrieve a development version for a "main" branch build', function() {
     process.env.IS_CI = true;
     process.env.BUILD_REF = 'main';
-    process.env.BUILD_NUMBER = '123';
-
-    const version = getVersion();
-    expect(version).to.eql('1.0.0');
-  });
-
-  it('should retrieve version for a "develop" branch build', function() {
-    process.env.IS_CI = true;
-    process.env.BUILD_REF = 'develop';
     process.env.BUILD_NUMBER = '123';
 
     const version = getVersion();
