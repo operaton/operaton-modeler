@@ -44,10 +44,9 @@ const {
   'on-demand': onDemand
 } = argv;
 
-const archs = [
-  (argv.ia32 || !argv.x64) && 'ia32',
-  (argv.x64 || !argv.ia32) && 'x64'
-].filter(f => f);
+// note: ia32 (32-bit) Windows builds are no longer supported, as
+// Electron dropped Windows ia32 binaries
+const archs = [ 'x64' ];
 
 const platforms = [
   win && 'win',

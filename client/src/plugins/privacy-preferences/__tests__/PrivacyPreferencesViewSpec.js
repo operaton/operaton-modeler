@@ -16,7 +16,6 @@ import PrivacyPreferencesView from '../PrivacyPreferencesView';
 
 import {
   PRIVACY_TEXT_FIELD,
-  PRIVACY_POLICY_URL,
   LEARN_MORE_TEXT,
   PRIVACY_POLICY_TEXT,
   PREFERENCES_LIST,
@@ -54,7 +53,7 @@ describe('<PrivacyPreferencesView>', function() {
       // then
       const privacyPolicyLink = screen.getByRole('link', { name: PRIVACY_POLICY_TEXT });
       expect(privacyPolicyLink).to.exist;
-      expect(privacyPolicyLink.getAttribute('href')).to.be.eql(PRIVACY_POLICY_URL);
+      expect(privacyPolicyLink.getAttribute('href')).to.be.eql('https://operaton.org/privacy');
     });
 
 

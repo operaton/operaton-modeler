@@ -17,7 +17,7 @@ const mri = require('mri');
 
 const log = require('./log')('app:cli');
 
-const chromiumSwitches = [ '--allow-file-access-from-files' ];
+const chromiumSwitches = [ '--allow-file-access-from-files', '--enable-avfoundation' ];
 
 function isChromiumSwitch(argument) {
   return chromiumSwitches.includes(argument);

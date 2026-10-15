@@ -1,13 +1,7 @@
-# Security
+# Security Policy
 
-## Supported Versions
+Please report suspected vulnerabilities privately through the [Operaton security advisories](https://github.com/operaton/operaton/security/advisories).
 
-Use this section to tell people about which versions of your project are currently being supported with security updates.
+Include the affected Operaton Modeler version, steps to reproduce the issue, and its potential impact. Do not disclose vulnerabilities in public issues before a fix is available.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0     | :white_check_mark: |
-
-## Reporting a Vulnerability
-
-If you uncover vulnerabilities in this software, please contact `help@finos.org` privately. We aim to respond within 3 working days.
+The [Operaton security policy](https://github.com/operaton/operaton/blob/main/SECURITY.md) describes the reporting and coordinated disclosure process. Reports may require coordination with the Fluxnova Modeler upstream project or other dependencies.

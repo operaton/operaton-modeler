@@ -152,6 +152,21 @@ function handleConversionForJson(contents, latestStable) {
 }
 
 function updateCommonAttributesForXml(definitions, latestStable) {
+
+  // Imported files may bind modeler metadata to any prefix. Replace the old
+  // platform fields and preserve other metadata under the Operaton URI.
+  Object.entries(definitions.$attrs).forEach(([ name, value ]) => {
+    if (name.startsWith('xmlns:') && [
+      'http://camunda.org/schema/modeler/1.0',
+      NAMESPACE_URI_MODELER
+    ].includes(value)) {
+      const prefix = name.slice('xmlns:'.length);
+      definitions.$attrs[name] = NAMESPACE_URI_MODELER;
+      delete definitions.$attrs[`${ prefix }:executionPlatform`];
+      delete definitions.$attrs[`${ prefix }:executionPlatformVersion`];
+    }
+  });
+
   const updatedAttributes = updateCommonAttributes(definitions, latestStable);
   updatedAttributes.exporter = Metadata.name;
   updatedAttributes.exporterVersion = Metadata.version;

@@ -23,13 +23,15 @@ import OperatonDmnModdle from '../moddle/operaton-dmn-moddle';
 import { selfAndAllFlowElements } from './elementsUtil';
 import parseExecutionPlatform from '../app/util/parseExecutionPlatform';
 import { ENGINES } from './Engines';
-import { usesOperatonExtensionNamespace } from './operatonXml';
+import { normalizeOperatonXml, usesOperatonExtensionNamespace } from './operatonXml';
 
 export async function getBpmnDefinitionsForConversion(xml) {
-  return await getBpmnDefinitions(xml, 'bpmn', null);
+  return await getBpmnDefinitions(normalizeOperatonXml(xml, 'bpmn'), 'bpmn', null);
 }
 
 export async function getDmnDefinitionsForConversion(xml) {
+  xml = normalizeOperatonXml(xml, 'dmn');
+
   const extensions = {
     camunda: getDmnModdleExtension(xml)
   };

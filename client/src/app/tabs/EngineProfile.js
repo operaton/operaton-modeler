@@ -9,24 +9,17 @@
  */
 
 import React, { useState, useRef } from 'react';
-
 import classnames from 'classnames';
-
 import semverCompare from 'semver-compare';
 
-
-import {
-  OPERATON_ENGINE_VERSION
-} from '../../util/Flags';
-
+import { ENGINES, ENGINE_LABELS, ENGINE_PROFILES, getLatestStable } from '../../util/Engines';
+import Flags, { OPERATON_ENGINE_VERSION } from '../../util/Flags';
 import {
   Overlay,
   Section
 } from '../../shared/ui';
 
 import { Fill } from '../slot-fill';
-
-import { ENGINES, ENGINE_LABELS, ENGINE_PROFILES, getLatestStable } from '../../util/Engines';
 
 const HELP_LINKS = {
   [ ENGINES.OPERATON ]: 'https://docs.operaton.org/docs/documentation/',
@@ -304,7 +297,7 @@ export function getDefaultVersion(engine) {
 }
 
 function getFlagVersion() {
-  return OPERATON_ENGINE_VERSION;
+  return Flags.get(OPERATON_ENGINE_VERSION, null);
 }
 
 function getVersions(engine) {

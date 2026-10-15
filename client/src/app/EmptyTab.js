@@ -22,7 +22,7 @@ import {
 export default class EmptyTab extends PureComponent {
 
   componentDidMount() {
-    this.props.onShown();
+    this.props.onShown(this.props.tab);
   }
 
   triggerAction() { }

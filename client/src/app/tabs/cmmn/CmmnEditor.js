@@ -26,7 +26,7 @@ import {
 
 import PropertiesPanelContainer from '../../resizable-container/PropertiesPanelContainer';
 
-import CamundaCmmnModeler from './modeler';
+import OperatonCmmnModeler from './modeler';
 
 import * as css from './CmmnEditor.less';
 
@@ -38,6 +38,8 @@ import getCmmnWindowMenu from './getCmmnWindowMenu';
 import generateImage from '../../util/generateImage';
 
 import Metadata from '../../../util/Metadata';
+
+import { normalizeOperatonXml } from '../../../util/operatonXml';
 
 
 const EXPORT_AS = [ 'png', 'jpeg', 'svg' ];
@@ -308,11 +310,13 @@ export class CmmnEditor extends CachedComponent {
     });
 
     // TODO(nikku): apply default element templates to initial diagram
-    modeler.importXML(this.props.xml, this.ifMounted(this.handleImport));
+    const xml = normalizeOperatonXml(this.props.xml, 'cmmn', { ensureNamespace: true });
+
+    modeler.importXML(xml, this.ifMounted(this.handleImport));
   }
 
   /**
-   * @returns {CamundaCmmnModeler}
+   * @returns {OperatonCmmnModeler}
    */
   getModeler() {
     const {
@@ -335,15 +339,10 @@ export class CmmnEditor extends CachedComponent {
     return new Promise((resolve, reject) => {
 
       if (!this.isDirty()) {
-        return resolve(lastXML || this.props.xml);
+        return resolve(normalizeOperatonXml(lastXML || this.props.xml, 'cmmn', { ensureNamespace: true }));
       }
 
       modeler.saveXML({ format: true }, (err, xml) => {
-        this.setCached({
-          lastXML: xml,
-          stackIdx
-        });
-
         if (err) {
           this.handleError({
             error: err
@@ -351,6 +350,13 @@ export class CmmnEditor extends CachedComponent {
 
           return reject(err);
         }
+
+        xml = normalizeOperatonXml(xml, 'cmmn', { ensureNamespace: true });
+
+        this.setCached({
+          lastXML: xml,
+          stackIdx
+        });
 
         return resolve(xml);
       });
@@ -511,7 +517,7 @@ export class CmmnEditor extends CachedComponent {
 
     const { onAction } = props;
 
-    const modeler = new CamundaCmmnModeler({
+    const modeler = new OperatonCmmnModeler({
       position: 'absolute',
       exporter: {
         name,

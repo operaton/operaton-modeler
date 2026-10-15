@@ -3,9 +3,9 @@ import { toSemverMinor } from './helpers';
 export const formJSVersions = {
   'Operaton': {
     '1.0': '1.14.0',
+    '1.1': '1.14.0',
     '2.0': '1.14.0',
-    '2.1': '1.14.0',
-    '2.2': '1.14.0'
+    '2.1': '1.14.0'
   }
 };
 

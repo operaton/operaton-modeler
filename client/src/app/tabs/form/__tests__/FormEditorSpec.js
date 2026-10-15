@@ -12,7 +12,7 @@
 
 import React, { createRef } from 'react';
 
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 
 import {
   Cache,
@@ -551,18 +551,23 @@ describe('<FormEditor>', function() {
       // given
       const { instance } = await renderEditor(schema);
 
-      // need to strip out carriage return characters for windows runner
-      const strippedInstanceJson = instance.getCached().lastSchema.replace(/[\r]/g, '');
-      const strippedSchema = schema.replace(/[\r]/g, '');
+      await waitFor(() => {
 
-      // assume
-      expect(strippedInstanceJson).to.equal(strippedSchema);
+        // need to strip out carriage return characters for windows runner
+        const strippedInstanceJson = instance.getCached().lastSchema.replace(/[\r]/g, '');
+        const strippedSchema = schema.replace(/[\r]/g, '');
+
+        // assume
+        expect(strippedInstanceJson).to.equal(strippedSchema);
+      });
 
       // when
       await instance.importSchema('{ "importError": true }');
 
       // then
-      expect(instance.getCached().lastSchema).to.be.null;
+      await waitFor(() => {
+        expect(instance.getCached().lastSchema).to.be.null;
+      });
     });
 
   });
@@ -631,9 +636,10 @@ describe('<FormEditor>', function() {
       instance.getXML();
 
       // then
-      const dirty = instance.isDirty();
-
-      expect(dirty).to.be.false;
+      await waitFor(() => {
+        const dirty = instance.isDirty();
+        expect(dirty).to.be.false;
+      });
     });
 
   });
@@ -652,7 +658,9 @@ describe('<FormEditor>', function() {
         const { instance } = await renderEditor(schema, { onAction });
 
         // then
-        expect(instance.getCached().engineProfile).to.eql(engineProfile);
+        await waitFor(() => {
+          expect(instance.getCached().engineProfile).to.eql(engineProfile);
+        });
       };
     }
 
@@ -687,9 +695,11 @@ describe('<FormEditor>', function() {
       const { instance } = await renderEditor(engineProfileSchema);
 
       // assume
-      expect(instance.getCached().engineProfile).to.eql({
-        executionPlatform: 'Operaton',
-        executionPlatformVersion: '1.0.0'
+      await waitFor(() => {
+        expect(instance.getCached().engineProfile).to.eql({
+          executionPlatform: 'Operaton',
+          executionPlatformVersion: '1.0.0'
+        });
       });
 
       // when
@@ -701,9 +711,11 @@ describe('<FormEditor>', function() {
       instance.handleChanged();
 
       // then
-      expect(instance.getCached().engineProfile).to.eql({
-        executionPlatform: 'Operaton',
-        executionPlatformVersion: '1.1.0'
+      await waitFor(() => {
+        expect(instance.getCached().engineProfile).to.eql({
+          executionPlatform: 'Operaton',
+          executionPlatformVersion: '1.1.0'
+        });
       });
     });
 
@@ -724,11 +736,15 @@ describe('<FormEditor>', function() {
       });
 
       // then
-      expect(onImportSpy).to.have.been.calledOnce;
+      await waitFor(() => {
+        expect(onImportSpy).to.have.been.calledOnce;
+      });
 
-      expect(instance.getCached().engineProfile).to.eql({
-        executionPlatform: 'Operaton',
-        executionPlatformVersion: latestStable
+      await waitFor(() => {
+        expect(instance.getCached().engineProfile).to.eql({
+          executionPlatform: 'Operaton',
+          executionPlatformVersion: latestStable
+        });
       });
     });
 
@@ -750,14 +766,16 @@ describe('<FormEditor>', function() {
         });
 
         // then
-        const { form } = instance.getCached();
+        await waitFor(() => {
+          const { form } = instance.getCached();
 
-        const calls = onActionSpy.getCalls()
-          .filter(call => call.args[0] === 'lint-tab');
+          const calls = onActionSpy.getCalls()
+            .filter(call => call.args[0] === 'lint-tab');
 
-        // then
-        expect(calls).to.have.lengthOf(1);
-        expect(onActionSpy).to.have.been.calledWith('lint-tab', { contents: form.getSchema() });
+          // then
+          expect(calls).to.have.lengthOf(1);
+          expect(onActionSpy).to.have.been.calledWith('lint-tab', { contents: form.getSchema() });
+        });
       });
 
 
@@ -770,19 +788,30 @@ describe('<FormEditor>', function() {
           onAction: onActionSpy
         });
 
+        // wait for initial lint
+        await waitFor(() => {
+          const { form } = instance.getCached();
+          expect(form).to.exist;
+          const calls = onActionSpy.getCalls()
+            .filter(call => call.args[0] === 'lint-tab');
+          expect(calls).to.have.lengthOf(1);
+        });
+
         // when
         const { form } = instance.getCached();
 
         form._editor._emit('commandStack.changed');
 
-        const calls = onActionSpy.getCalls()
-          .filter(call => call.args[0] === 'lint-tab');
-
         // then
-        expect(calls).to.have.lengthOf(2);
+        await waitFor(() => {
+          const calls = onActionSpy.getCalls()
+            .filter(call => call.args[0] === 'lint-tab');
 
-        calls.forEach(function(call) {
-          expect(call[1] === form.getSchema());
+          expect(calls).to.have.lengthOf(2);
+
+          calls.forEach(function(call) {
+            expect(call[1] === form.getSchema());
+          });
         });
       });
 
@@ -816,6 +845,13 @@ describe('<FormEditor>', function() {
           unmount
         } = await renderEditor(engineProfileSchema, {
           onAction: onActionSpy
+        });
+
+        // wait for initial lint
+        await waitFor(() => {
+          const calls = onActionSpy.getCalls()
+            .filter(call => call.args[0] === 'lint-tab');
+          expect(calls).to.have.lengthOf(1);
         });
 
         const { form } = instance.getCached();
@@ -1091,6 +1127,12 @@ describe('<FormEditor>', function() {
 
       // when
       instance.setState({ triggeredBy: 'foo' });
+
+      // assume
+      await waitFor(() => {
+        expect(instance.state.triggeredBy).to.equal('foo');
+      });
+
       instance.handlePlaygroundLayoutChanged({
         layout
       });

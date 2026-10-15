@@ -13,6 +13,7 @@ import {
 } from '../operatonConversion';
 import { spy } from 'sinon';
 import { ENGINES, getLatestStable } from '../../../../util/Engines';
+import { getBpmnDefinitions } from '../../../../util/xmlConversion';
 
 describe('tabs/bpmn/util - operatonConversion', function() {
 
@@ -197,6 +198,39 @@ describe('tabs/bpmn/util - operatonConversion', function() {
         expect(onAction).not.to.have.been.calledWith('close-tab');
         expect(onContentChanged).to.have.been.called;
 
+      });
+
+      it('should replace metadata bound to an alternative prefix', async function() {
+        const source = camundaNsBpmn
+          .replace(/xmlns:modeler=/g, 'xmlns:m=')
+          .replace(/modeler:executionPlatform/g, 'm:executionPlatform');
+
+        const conversion = await convertBpmnToOperatonIfRequired(source, onAction, onContentChanged);
+        const definitions = await getBpmnDefinitions(conversion, 'bpmn');
+
+        expect(conversion).not.to.contain('http://camunda.org/schema/modeler/1.0');
+        expect(conversion).not.to.contain('m:executionPlatform="Camunda Platform"');
+        expect(definitions.get('modeler:executionPlatform')).to.equal(ENGINES.OPERATON);
+        expect(definitions.get('modeler:executionPlatformVersion')).to.equal(latestStable);
+      });
+
+      it('should preserve scripts and property values while migrating', async function() {
+        const source = camundaNsBpmn.replace('<bpmn:startEvent id="StartEvent_1" />',
+          '<bpmn:startEvent id="StartEvent_1" />' +
+          '<bpmn:scriptTask id="Script_1" name="Keep camunda:prefix" scriptFormat="javascript">' +
+          '<bpmn:script><![CDATA[const text = " camunda:foo <camunda:inputOutput />";]]></bpmn:script>' +
+          '<bpmn:extensionElements><camunda:inputOutput>' +
+          '<camunda:inputParameter name="parameter">value camunda:unchanged</camunda:inputParameter>' +
+          '</camunda:inputOutput></bpmn:extensionElements></bpmn:scriptTask>');
+
+        const conversion = await convertBpmnToOperatonIfRequired(source, onAction, onContentChanged);
+        const definitions = await getBpmnDefinitions(conversion, 'bpmn');
+        const scriptTask = definitions.rootElements[0].flowElements.find(element => element.id === 'Script_1');
+
+        expect(scriptTask.name).to.equal('Keep camunda:prefix');
+        expect(scriptTask.script).to.equal('const text = " camunda:foo <camunda:inputOutput />";');
+        expect(scriptTask.extensionElements.values[0].inputParameters[0].value).to.equal('value camunda:unchanged');
+        expect(conversion).not.to.contain('http://camunda.org/schema/1.0/bpmn');
       });
 
       it('non operaton dmn', async function() {

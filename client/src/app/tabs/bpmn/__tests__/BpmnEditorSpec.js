@@ -409,7 +409,7 @@ describe('<BpmnEditor>', function() {
 
       it('should lint on import', async function() {
 
-        // then
+        expect(onAction).to.have.been.calledOnce;
         expect(onAction).to.have.been.calledWithMatch('lint-tab');
       });
 
@@ -620,7 +620,7 @@ describe('<BpmnEditor>', function() {
           lassoTool: true,
           moveCanvas: true,
           moveToOrigin: true,
-          paste: false,
+          paste: true,
           redo: true,
           removeSelected: false,
           replaceElement: false,
@@ -1452,7 +1452,9 @@ describe('<BpmnEditor>', function() {
       await instance.importXML('import-error');
 
       // then
-      expect(instance.getCached().lastXML).to.be.null;
+      await waitFor(() => {
+        expect(instance.getCached().lastXML).to.be.null;
+      });
     });
 
   });
@@ -1793,9 +1795,10 @@ describe('<BpmnEditor>', function() {
       await instance.getXML();
 
       // then
-      const dirty = instance.isDirty();
-
-      expect(dirty).to.be.false;
+      await waitFor(() => {
+        const dirty = instance.isDirty();
+        expect(dirty).to.be.false;
+      });
     });
 
 

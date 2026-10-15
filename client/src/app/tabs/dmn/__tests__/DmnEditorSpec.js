@@ -1136,7 +1136,7 @@ describe('<DmnEditor>', function() {
     });
 
 
-    it('should save dirty state', function() {
+    it('should save dirty state', async function() {
 
       // given
       const dirtySpy = spy(instance, 'isDirty');
@@ -1155,14 +1155,14 @@ describe('<DmnEditor>', function() {
         views
       });
 
-      const {
-        dirty
-      } = instance.getCached();
+      await waitFor (() =>{
+        const { dirty } = instance.getCached();
 
-      // then
-      expect(dirtySpy).to.have.been.called;
-      expect(dirty).to.be.true;
-      expect(dirty).to.not.equal(oldDirty);
+        // then
+        expect(dirtySpy).to.have.been.called;
+        expect(dirty).to.be.true;
+        expect(dirty).to.not.equal(oldDirty);
+      });
     });
 
 
@@ -1186,7 +1186,7 @@ describe('<DmnEditor>', function() {
     });
 
 
-    it('should NOT reattach properties panel when stay on view', function() {
+    it('should NOT reattach properties panel when stay on view', async function() {
 
       // given
       const modeler = instance.getModeler();
@@ -1194,6 +1194,11 @@ describe('<DmnEditor>', function() {
       instance.viewsChanged({
         activeView: drdView,
         views
+      });
+
+      // assume
+      await waitFor(() => {
+        expect(instance.getCached().activeView).to.eql(drdView);
       });
 
       const propertiesPanel = modeler.getActiveViewer().get('propertiesPanel');
@@ -1219,11 +1224,16 @@ describe('<DmnEditor>', function() {
         views
       });
 
+      // assume
+      await waitFor(() => {
+        expect(instance.getCached().activeView).to.eql(drdView);
+      });
+
       const modeler = instance.getModeler();
 
       sinon.stub(modeler, 'getActiveView').callsFake(() => decisionTableView);
 
-      const overviewAttachSpy = sinon.spy(modeler, 'attachOverviewTo');
+      const overviewUpdateSpy = sinon.spy(modeler, 'updateOverview');
 
       // when
       instance.viewsChanged({
@@ -1232,7 +1242,9 @@ describe('<DmnEditor>', function() {
       });
 
       // then
-      expect(overviewAttachSpy).to.have.been.called;
+      await waitFor(() => {
+        expect(overviewUpdateSpy).to.have.been.called;
+      });
     });
 
 
@@ -1248,7 +1260,7 @@ describe('<DmnEditor>', function() {
 
       sinon.stub(modeler, 'getActiveView').callsFake(() => drdView);
 
-      const overviewDetachSpy = sinon.spy(modeler, 'detachOverview');
+      const overviewUpdateSpy = sinon.spy(modeler, 'updateOverview');
 
       // when
       instance.viewsChanged({
@@ -1257,7 +1269,9 @@ describe('<DmnEditor>', function() {
       });
 
       // then
-      expect(overviewDetachSpy).to.have.been.called;
+      await waitFor(() => {
+        expect(overviewUpdateSpy).to.have.been.called;
+      });
     });
 
   });
@@ -1326,8 +1340,13 @@ describe('<DmnEditor>', function() {
 
       instance.handleChanged();
 
+      let toggle;
+
       // when
-      const toggle = container.querySelector('#button-toggle-overview');
+      await waitFor(() => {
+        toggle = container.querySelector('#button-toggle-overview');
+        expect(toggle).to.exist;
+      });
       fireEvent.click(toggle);
 
       // then
@@ -1368,7 +1387,11 @@ describe('<DmnEditor>', function() {
       instance.handleChanged();
 
       // when
-      const toggle = container.querySelector('#button-toggle-overview');
+      let toggle;
+      await waitFor(() => {
+        toggle = container.querySelector('#button-toggle-overview');
+        expect(toggle).to.exist;
+      });
       fireEvent.click(toggle);
 
       // then
@@ -1732,7 +1755,9 @@ describe('<DmnEditor>', function() {
       await instance.importXML('import-error');
 
       // then
-      expect(instance.getCached().lastXML).to.be.null;
+      await waitFor(() =>{
+        expect(instance.getCached().lastXML).to.be.null;
+      });
     });
 
   });
@@ -1801,9 +1826,10 @@ describe('<DmnEditor>', function() {
       await instance.getXML();
 
       // then
-      const dirty = instance.isDirty();
-
-      expect(dirty).to.be.false;
+      await waitFor(() => {
+        const dirty = instance.isDirty();
+        expect(dirty).to.be.false;
+      });
     });
 
 

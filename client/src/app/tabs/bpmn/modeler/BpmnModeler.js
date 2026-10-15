@@ -18,6 +18,8 @@ import handToolOnSpaceModule from './features/hand-tool-on-space';
 import propertiesPanelKeyboardBindingsModule from './features/properties-panel-keyboard-bindings';
 import propPanelExtensionModule from './features/properties-panel-extension';
 import bpmnFormExtensionProviderModule from './features/properties-panel-form-group';
+import operatonAdHocModule from './features/operaton-ad-hoc';
+
 import lintingAnnotationsModule from '@camunda/linting/modeler';
 
 import { BpmnJSTracking as bpmnJSTracking } from 'bpmn-js-tracking';
@@ -29,12 +31,14 @@ import popupMenuTracking from 'bpmn-js-tracking/lib/features/popup-menu';
 import paletteTracking from 'bpmn-js-tracking/lib/features/palette';
 
 import { BpmnImprovedCanvasModule } from './features/improved-canvas';
+import OperatonModelerModdle from '../../../../moddle/operaton-bpmn-modeler-moddle';
 
 import operatonBpmnModdle from '../../../../moddle/operaton-bpmn-moddle';
 
 import Flags, {
   DISABLE_ADJUST_ORIGIN,
-  ENABLE_NEW_CONTEXT_PAD
+  ENABLE_NEW_CONTEXT_PAD,
+  ENABLE_OPERATON_AD_HOC
 } from '../../../../util/Flags';
 
 export default class PlatformBpmnModeler extends BpmnModeler {
@@ -46,6 +50,13 @@ export default class PlatformBpmnModeler extends BpmnModeler {
       moddleExtensions = {},
       ...otherOptions
     } = options;
+
+    const enableOperatonAdHoc = Flags.get(ENABLE_OPERATON_AD_HOC, false);
+
+    // CLI values such as --enable-operaton-ad-hoc=false arrive as strings.
+    if (enableOperatonAdHoc === true || enableOperatonAdHoc === 'true') {
+      additionalModules = [ ...additionalModules, operatonAdHocModule ];
+    }
 
     if (Flags.get(ENABLE_NEW_CONTEXT_PAD, false)) {
       additionalModules = [
@@ -63,6 +74,7 @@ export default class PlatformBpmnModeler extends BpmnModeler {
       ...otherOptions,
       additionalModules,
       moddleExtensions: {
+        modeler: OperatonModelerModdle,
         ...moddleExtensions,
         camunda: operatonBpmnModdle
       },

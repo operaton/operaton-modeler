@@ -53,6 +53,36 @@ describe('cli', function() {
 
     describe('MacOS', function() {
 
+      it('parse diagram file after Electron AVFoundation switch', function() {
+
+        // given
+        const args = [
+          'app',
+          '--user-data-dir=/tmp/profile',
+          '--disable-remote-interaction=true',
+          '--allow-file-access-from-files',
+          '--enable-avfoundation',
+          absPath('cli/random.xml')
+        ];
+
+        // when
+        const {
+          files,
+          flags
+        } = Cli.parse(args, __dirname);
+
+        // then
+        expect(files).to.eql([
+          absPath('cli/random.xml')
+        ]);
+
+        expect(flags).to.eql({
+          'user-data-dir': '/tmp/profile',
+          'disable-remote-interaction': 'true'
+        });
+      });
+
+
       it('parse args, just diagram file', function() {
 
         // given

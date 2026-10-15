@@ -22,6 +22,9 @@ import {
 
 import * as css from './MultiSheetTab.less';
 import { Fill } from '../slot-fill';
+import { normalizeOperatonXml } from '../../util/operatonXml';
+import { ENGINES, getLatestStable } from '../../util/Engines';
+import Metadata from '../../util/Metadata';
 
 
 export class MultiSheetTab extends CachedComponent {
@@ -57,7 +60,11 @@ export class MultiSheetTab extends CachedComponent {
       sheets = [];
     }
 
-    const provider = activeSheet.provider;
+    const provider = activeSheet?.provider;
+
+    if (!provider) {
+      return;
+    }
 
     const wiredNewSheets = newSheets.map(newSheet => {
       return {
@@ -84,12 +91,13 @@ export class MultiSheetTab extends CachedComponent {
 
   handleChanged = (newState = {}) => {
     const {
-      onChanged
+      onChanged,
+      tab
     } = this.props;
 
     const dirty = this.isDirty(newState);
 
-    onChanged({
+    onChanged(tab, {
       ...newState,
       dirty
     });
@@ -97,18 +105,20 @@ export class MultiSheetTab extends CachedComponent {
 
   handleError = (error) => {
     const {
-      onError
+      onError,
+      tab
     } = this.props;
 
-    onError(error);
+    onError(tab, error);
   };
 
   handleWarning = (warning) => {
     const {
-      onWarning
+      onWarning,
+      tab
     } = this.props;
 
-    onWarning(warning);
+    onWarning(tab, warning);
   };
 
   /**
@@ -155,7 +165,7 @@ export class MultiSheetTab extends CachedComponent {
 
     if (button === 'ask-in-forum') {
       onAction('open-external-url', {
-        url: 'https://github.com/operaton/operaton-modeler/issues'
+        url: 'https://forum.operaton.org'
       });
     }
   }
@@ -253,7 +263,21 @@ export class MultiSheetTab extends CachedComponent {
     const editor = this.editorRef.current;
 
     if (action === 'save') {
-      const xml = await editor.getXML();
+      let xml = await editor.getXML();
+      const { type } = this.props.tab;
+
+      if ([ 'bpmn', 'dmn', 'cmmn' ].includes(type)) {
+        xml = normalizeOperatonXml(xml, type, {
+          ensureNamespace: true,
+          metadata: {
+            executionPlatformVersion: getLatestStable(ENGINES.OPERATON),
+            exporter: Metadata.name,
+            exporterVersion: Metadata.version
+          }
+        });
+      } else if (type === 'form') {
+        xml = normalizeFormForSave(xml);
+      }
 
       this.setCached({
         lastXML: xml
@@ -458,6 +482,35 @@ function SheetSwitch(props) {
 
 
 // helper //////////
+
+function normalizeFormForSave(contents) {
+  let schema;
+
+  try {
+    schema = JSON.parse(contents);
+  } catch {
+    return contents;
+  }
+
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema) ||
+    schema.executionPlatform === ENGINES.CLOUD) {
+    return contents;
+  }
+
+  const executionPlatformVersion = schema.executionPlatform === ENGINES.OPERATON &&
+    schema.executionPlatformVersion || getLatestStable(ENGINES.OPERATON);
+
+  return JSON.stringify({
+    ...schema,
+    executionPlatform: ENGINES.OPERATON,
+    executionPlatformVersion,
+    exporter: {
+      ...schema.exporter,
+      name: Metadata.name,
+      version: Metadata.version
+    }
+  }, null, 2);
+}
 
 function getErrorDialog({
   error,

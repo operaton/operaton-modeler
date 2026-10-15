@@ -14,7 +14,9 @@ import React from 'react';
 
 import { waitFor } from '@testing-library/react';
 
-import { render, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
+
+import { userEvent } from '@testing-library/user-event';
 
 import { merge } from 'min-dash';
 
@@ -24,6 +26,7 @@ import DeploymentConfigValidator from '../validation/DeploymentConfigValidator';
 import { GenericApiErrors } from '../../shared/RestAPI';
 
 describe('<DeploymentConfigOverlay>', function() {
+  const user = userEvent.setup();
 
   it('should render', function() {
     createOverlay();
@@ -52,6 +55,7 @@ describe('<DeploymentConfigOverlay>', function() {
 
   describe('connection check', function() {
 
+
     it('should display hint if the username and password are missing when submitting', async function() {
 
       // given
@@ -67,28 +71,28 @@ describe('<DeploymentConfigOverlay>', function() {
       };
 
       const validator = new MockValidator({
-        validateConnection: () => new Promise((resolve, err) => {
-          resolve({
-            code: GenericApiErrors.UNAUTHORIZED
-          });
+        validateConnection: () => Promise.resolve({
+          code: GenericApiErrors.UNAUTHORIZED
+        }),
+        validateConnectionWithoutCredentials: () => Promise.resolve({
+          code: GenericApiErrors.UNAUTHORIZED
         })
       });
 
       const {
-        getByRole
+        getByRole,
+        getByLabelText
       } = createOverlay({
         configuration,
         validator
       });
 
-      // when
-
-      // delayed execution because it is async that the deployment
-      // tool knows if the authentication is necessary
-      setTimeout(() => {
-        const submitButton = getByRole('button', { name: 'Deploy' });
-        fireEvent.click(submitButton);
+      // when - wait for the auth fields to appear
+      await waitFor(() => {
+        expect(getByLabelText('Username')).to.exist;
       });
+
+      await user.click(getByRole('button', { name: 'Deploy' }));
 
       // then
       await waitFor(() => {
@@ -115,24 +119,26 @@ describe('<DeploymentConfigOverlay>', function() {
       const validator = new MockValidator({
         validateConnection: () => Promise.resolve({
           code: GenericApiErrors.UNAUTHORIZED
+        }),
+        validateConnectionWithoutCredentials: () => Promise.resolve({
+          code: GenericApiErrors.UNAUTHORIZED
         })
       });
 
       const {
-        getByRole
+        getByRole,
+        getByLabelText
       } = createOverlay({
         configuration,
         validator
       });
 
       // when
-
-      // delayed execution because it is async that the deployment
-      // tool knows if the authentication is necessary
-      setTimeout(() => {
-        const submitButton = getByRole('button', { name: 'Deploy' });
-        fireEvent.click(submitButton);
+      await waitFor(() => {
+        expect(getByLabelText('Token')).to.exist;
       });
+
+      await user.click(getByRole('button', { name: 'Deploy' }));
 
       // then
       await waitFor(() => {
@@ -173,7 +179,7 @@ describe('<DeploymentConfigOverlay>', function() {
 
       // when
       const submitButton = getByRole('button', { name: 'Deploy' });
-      fireEvent.click(submitButton);
+      await user.click(submitButton);
 
       // then
       await waitFor(() => {
@@ -212,7 +218,7 @@ describe('<DeploymentConfigOverlay>', function() {
 
       // when
       const submitButton = getByRole('button', { name: 'Deploy' });
-      fireEvent.click(submitButton);
+      await user.click(submitButton);
 
       // then
       await waitFor(() => {
@@ -309,7 +315,7 @@ describe('<DeploymentConfigOverlay>', function() {
 
     // when
     const submitButton = getByRole('button', { name: 'Deploy' });
-    fireEvent.click(submitButton);
+    await user.click(submitButton);
 
     // then
     await waitFor(() => {

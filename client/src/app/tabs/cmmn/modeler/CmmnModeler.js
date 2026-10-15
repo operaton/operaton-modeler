@@ -15,7 +15,7 @@ import diagramOriginModule from 'diagram-js-origin';
 import alignToOriginModule from '@bpmn-io/align-to-origin';
 import addExporterModule from '@bpmn-io/add-exporter';
 
-import camundaModdlePackage from 'camunda-cmmn-moddle/resources/camunda';
+import operatonModdlePackage from '../../../../moddle/operaton-cmmn-moddle';
 
 import completeDirectEditingModule from '../../bpmn/modeler/features/complete-direct-editing';
 import propertiesPanelModule from 'cmmn-js-properties-panel';
@@ -30,7 +30,7 @@ import 'cmmn-js/dist/assets/diagram-js.css';
 import 'cmmn-js/dist/assets/cmmn-font/css/cmmn-embedded.css';
 
 
-export default class CamundaCmmnModeler extends CmmnModeler {
+export default class OperatonCmmnModeler extends CmmnModeler {
 
   constructor(options = {}) {
 
@@ -42,8 +42,8 @@ export default class CamundaCmmnModeler extends CmmnModeler {
     super({
       ...otherOptions,
       moddleExtensions: {
-        camunda: camundaModdlePackage,
-        ...(moddleExtensions || {})
+        ...(moddleExtensions || {}),
+        camunda: operatonModdlePackage
       }
     });
   }
@@ -60,7 +60,7 @@ const extensionModules = [
   propertiesPanelKeyboardBindingsModule
 ];
 
-CamundaCmmnModeler.prototype._modules = [
+OperatonCmmnModeler.prototype._modules = [
   ...defaultModules,
   ...extensionModules
 ];

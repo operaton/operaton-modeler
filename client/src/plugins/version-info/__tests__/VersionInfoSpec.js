@@ -10,7 +10,7 @@
 
 import React from 'react';
 
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 
 import { VersionInfo } from '../VersionInfo';
 
@@ -39,7 +39,7 @@ describe('<VersionInfo>', function() {
   });
 
 
-  it('should open via menu events', function() {
+  it('should open via menu events', async function() {
 
     // given
     const subscribe = createSubscribe();
@@ -49,7 +49,9 @@ describe('<VersionInfo>', function() {
     subscribe.emit({ source: 'menu' });
 
     // then
-    expect(screen.getByRole('dialog'), 'Overlay should be displayed').to.exist;
+    await waitFor(() => {
+      expect(screen.getByRole('dialog'), 'Overlay should be displayed').to.exist;
+    });
   });
 
 
@@ -60,6 +62,11 @@ describe('<VersionInfo>', function() {
 
     // when
     fireEvent.click(screen.getByRole('button'));
+
+    // assume
+    expect(screen.getByRole('dialog'), 'Overlay should be displayed').to.exist;
+
+    // when
     fireEvent.click(screen.getByRole('button'));
 
     // then
@@ -96,7 +103,7 @@ describe('<VersionInfo>', function() {
     });
 
 
-    it('should NOT display unread marker when overlay is clicked', function() {
+    it('should NOT display unread marker when overlay is clicked', async function() {
 
       // given
       const get = key => key === 'versionInfo' && { lastOpenedVersion: 'OLD' };
@@ -107,13 +114,13 @@ describe('<VersionInfo>', function() {
       fireEvent.click(screen.getByRole('button'));
 
       // then
-      return expectEventually(() => {
+      await waitFor(() => {
         expect(screen.queryByLabelText('unread'), 'Unread marker should be gone').to.be.null;
       });
     });
 
 
-    it('should NOT display unread marker if it has been already opened', function() {
+    it('should NOT display unread marker if it has been already opened', async function() {
 
       // given
       const get = key => key === 'versionInfo' && { lastOpenedVersion: 'TEST_VERSION' };
@@ -121,7 +128,7 @@ describe('<VersionInfo>', function() {
       createVersionInfo({ config });
 
       // then
-      return expectEventually(() => {
+      await waitFor(() => {
         expect(screen.queryByLabelText('unread'), 'Unread marker should be gone').to.be.null;
       });
     });
@@ -146,7 +153,7 @@ describe('<VersionInfo>', function() {
     });
 
 
-    it('should propagate the source', function() {
+    it('should propagate the source', async function() {
 
       // given
       const triggerAction = sinon.spy();
@@ -157,19 +164,26 @@ describe('<VersionInfo>', function() {
       subscribe.emit({ source: 'menu' });
 
       // then
-      expect(triggerAction).to.have.been.calledOnceWith(
-        'emit-event', { type: 'versionInfo.opened', payload: { type: 'open', source: 'menu' } }
-      );
+      await waitFor(() => {
+        expect(triggerAction).to.have.been.calledOnceWith(
+          'emit-event', { type: 'versionInfo.opened', payload: { type: 'open', source: 'menu' } }
+        );
+      });
     });
 
 
-    it('should NOT notify again when overlay is already open', function() {
+    it('should NOT notify again when overlay is already open', async function() {
 
       // given
       const triggerAction = sinon.spy();
       const subscribe = createSubscribe();
       createVersionInfo({ subscribe, triggerAction });
       subscribe.emit({ source: 'menu' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).to.exist;
+      });
+
       triggerAction.resetHistory();
 
       // when
@@ -238,33 +252,6 @@ function createVersionInfo(props = {}) {
 
 function noop() {
   return { cancel() {} };
-}
-
-async function expectEventually(expectStatement) {
-  const sleep = time => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve();
-      }, time);
-    });
-  };
-
-  for (let i = 0; i < 10; i++) {
-    try {
-      expectStatement();
-
-      // success
-      return;
-    } catch {
-
-      // do nothing
-    }
-
-    await sleep(50);
-  }
-
-  // let it fail correctly
-  expectStatement();
 }
 
 function createSubscribe() {

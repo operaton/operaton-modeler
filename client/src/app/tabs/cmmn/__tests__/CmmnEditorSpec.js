@@ -10,7 +10,7 @@
 
 /* global sinon */
 
-import { fireEvent } from '@testing-library/react';
+import { waitFor, fireEvent } from '@testing-library/react';
 
 import {
   Cache,
@@ -127,6 +127,65 @@ describe('<CmmnEditor>', function() {
 
     expect(xml).to.exist;
     expect(xml).to.eql(diagramXML);
+  });
+
+
+  describe('Operaton XML', function() {
+
+    const legacyXML = diagramXML
+      .replace('xmlns:operaton=', 'xmlns:camunda=')
+      .replace('http://operaton.org/schema/1.0/cmmn', 'http://camunda.org/schema/1.0/cmmn')
+      .replace('<cmmn:case id=', '<cmmn:case camunda:historyTimeToLive="30" id=');
+
+    function expectOperatonXML(xml) {
+      expect(xml).to.contain('xmlns:operaton="http://operaton.org/schema/1.0/cmmn"');
+      expect(xml).to.contain('operaton:historyTimeToLive="30"');
+      expect(xml).not.to.contain('camunda:');
+      expect(xml).not.to.contain('http://camunda.org/schema/1.0/cmmn');
+    }
+
+
+    it('should normalize legacy Camunda XML before importing', async function() {
+      const { instance } = await renderEditor(legacyXML);
+
+      expectOperatonXML(instance.getModeler().xml);
+    });
+
+
+    it('should save unmodified legacy files with Operaton extensions', async function() {
+      const { instance } = await renderEditor(legacyXML);
+
+      expect(instance.isDirty()).to.be.false;
+      expectOperatonXML(await instance.getXML());
+    });
+
+
+    it('should save edited files with Operaton extensions', async function() {
+      const { instance } = await renderEditor(legacyXML);
+
+      const modeler = instance.getModeler();
+
+      // The moddle package retains Camunda type names internally.
+      modeler.xml = legacyXML.replace('http://camunda.org/schema/1.0/cmmn', 'http://operaton.org/schema/1.0/cmmn');
+      modeler.get('commandStack').execute(1);
+
+      expectOperatonXML(await instance.getXML());
+
+      await waitFor(() => {
+        expectOperatonXML(instance.getCached().lastXML);
+        expect(instance.isDirty()).to.be.false;
+      });
+    });
+
+
+    it('should declare the Operaton namespace when saving vanilla CMMN', async function() {
+      const vanillaXML = diagramXML.replace(' xmlns:operaton="http://operaton.org/schema/1.0/cmmn"', '');
+
+      const { instance } = await renderEditor(vanillaXML);
+
+      expect(await instance.getXML()).to.contain('xmlns:operaton="http://operaton.org/schema/1.0/cmmn"');
+    });
+
   });
 
 
@@ -787,9 +846,10 @@ describe('<CmmnEditor>', function() {
       await instance.getXML();
 
       // then
-      const dirty = instance.isDirty();
-
-      expect(dirty).to.be.false;
+      await waitFor(() => {
+        const dirty = instance.isDirty();
+        expect(dirty).to.be.false;
+      });
     });
 
   });

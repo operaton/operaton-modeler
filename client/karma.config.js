@@ -110,13 +110,42 @@ module.exports = function(karma) {
             use: 'babel-loader'
           },
           {
+            test: /\.css$/,
+            use: {
+              loader: 'css-loader',
+              options: {
+                modules: {
+                  mode: 'global',
+                  exportOnlyLocals: true,
+                  localIdentName: '[name]__[local]--[hash:base64:5]'
+                }
+              }
+            }
+          },
+          {
+            test: /\.less$/,
+            use: [
+              {
+                loader: 'css-loader',
+                options: {
+                  modules: {
+                    mode: 'global',
+                    exportOnlyLocals: true,
+                    localIdentName: '[name]__[local]--[hash:base64:5]'
+                  }
+                }
+              },
+              'less-loader'
+            ]
+          },
+          {
             oneOf: [
               {
                 test: /[/\\][A-Z][^/\\]+\.svg$/,
                 use: 'react-svg-loader'
               },
               {
-                test: /\.(css|bpmn|cmmn|dmn|less|xml|png|svg|form|rpa)$/,
+                test: /\.(bpmn|cmmn|dmn|xml|png|svg|form|rpa)$/,
                 type: 'asset/source'
               }
             ]
@@ -146,6 +175,8 @@ module.exports = function(karma) {
           resourcePath
         ],
         alias: {
+          'react': path.dirname(require.resolve('react/package.json')),
+          'react-dom': path.dirname(require.resolve('react-dom/package.json')),
           'bpmn-js/lib/Modeler': modelers ? 'bpmn-js/lib/Modeler' : 'test/mocks/bpmn-js/Modeler',
           'camunda-bpmn-js/lib/camunda-cloud/Modeler': modelers ? 'camunda-bpmn-js/lib/camunda-cloud/Modeler' : 'test/mocks/bpmn-js/Modeler',
           'camunda-bpmn-js/lib/camunda-platform/Modeler': modelers ? 'camunda-bpmn-js/lib/camunda-platform/Modeler' : 'test/mocks/bpmn-js/Modeler',
@@ -156,7 +187,8 @@ module.exports = function(karma) {
           'sourcemapped-stacktrace': 'test/mocks/sourcemapped-stacktrace',
           './editor/FormEditor': 'test/mocks/form-js',
           '@camunda/linting': 'test/mocks/linting',
-          '@camunda/linting/modeler': 'test/mocks/linting/modeler'
+          '@camunda/linting/modeler': 'test/mocks/linting/modeler',
+          'mixpanel-browser': 'test/mocks/mixpanel-browser'
         }
       },
       devtool: 'eval-cheap-module-source-map'

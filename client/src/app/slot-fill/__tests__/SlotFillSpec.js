@@ -62,6 +62,36 @@ describe('slot-fill', function() {
       );
     });
 
+
+    it('should not update state when re-registering same fill instance', function() {
+      const slotFillRoot = new SlotFillRoot({ });
+
+      let stateTransitions = 0;
+
+      slotFillRoot.setState = (updater) => {
+        const nextState = updater(slotFillRoot.state);
+
+        if (!nextState) {
+          return;
+        }
+
+        slotFillRoot.state = {
+          ...slotFillRoot.state,
+          ...nextState
+        };
+
+        stateTransitions++;
+      };
+
+      const fill = { id: 42 };
+
+      slotFillRoot.fillContext.addFill(fill);
+      slotFillRoot.fillContext.addFill(fill);
+
+      expect(slotFillRoot.state.fills).to.have.length(1);
+      expect(stateTransitions).to.equal(1);
+    });
+
   });
 
 

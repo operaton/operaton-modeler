@@ -12,7 +12,7 @@
 
 import React, { createRef } from 'react';
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 
 import { MultiSheetTab } from '../MultiSheetTab';
 
@@ -115,7 +115,7 @@ describe('<MultiSheetTab>', function() {
       // then
       expect(errorSpy).not.to.have.been.called;
       expect(warningSpy).to.have.been.calledTwice;
-      expect(warningSpy.alwaysCalledWith('warning')).to.be.true;
+      expect(warningSpy.alwaysCalledWith(defaultTab, 'warning')).to.be.true;
     });
 
 
@@ -154,7 +154,7 @@ describe('<MultiSheetTab>', function() {
       instance.handleImport(error);
 
       // then
-      expect(errorSpy).to.have.been.calledWith(error);
+      expect(errorSpy).to.have.been.calledWith(defaultTab, error);
       expect(warningSpy).not.to.have.been.called;
       expect(showImportErrorDialogSpy).to.have.been.called;
     });
@@ -180,10 +180,10 @@ describe('<MultiSheetTab>', function() {
       instance.handleImport(error, warnings);
 
       // then
-      expect(errorSpy).to.have.been.calledWith(error);
+      expect(errorSpy).to.have.been.calledWith(defaultTab, error);
 
       expect(warningSpy).to.have.been.calledTwice;
-      expect(warningSpy.alwaysCalledWith('warning')).to.be.true;
+      expect(warningSpy.alwaysCalledWith(defaultTab, 'warning')).to.be.true;
 
       expect(showImportErrorDialogSpy).to.have.been.called;
       expect(displayWarningsNotificationSpy).not.to.have.been.called;
@@ -236,12 +236,12 @@ describe('<MultiSheetTab>', function() {
       // then
       expect(actionSpy).to.have.been.calledTwice;
       expect(actionSpy).to.have.been.calledWith('open-external-url', {
-        url: 'https://github.com/operaton/operaton-modeler/issues'
+        url: 'https://forum.operaton.org'
       });
     });
 
 
-    it('should open fallback on error', function() {
+    it('should open fallback on error', async function() {
 
       // given
       const {
@@ -252,11 +252,10 @@ describe('<MultiSheetTab>', function() {
       instance.handleImport(new Error('error'));
 
       // then
-      const {
-        activeSheet
-      } = instance.getCached();
-
-      expect(activeSheet.id).to.equal('fallback');
+      await waitFor(() => {
+        const { activeSheet } = instance.getCached();
+        expect(activeSheet.id).to.equal('fallback');
+      });
     });
 
   });
@@ -264,7 +263,7 @@ describe('<MultiSheetTab>', function() {
 
   describe('#openFallback', function() {
 
-    it('should open fallback', function() {
+    it('should open fallback', async function() {
 
       // given
       const {
@@ -275,15 +274,14 @@ describe('<MultiSheetTab>', function() {
       instance.openFallback();
 
       // then
-      const {
-        activeSheet
-      } = instance.getCached();
-
-      expect(activeSheet.id).to.equal('fallback');
+      await waitFor(() => {
+        const { activeSheet } = instance.getCached();
+        expect(activeSheet.id).to.equal('fallback');
+      });
     });
 
 
-    it('should open fallback on error during first mount', function() {
+    it('should open fallback on error during first mount', async function() {
 
       // given
       class BrokenEditor extends DefaultEditor {
@@ -311,11 +309,10 @@ describe('<MultiSheetTab>', function() {
       const { instance } = renderTab({ providers });
 
       // then
-      const {
-        activeSheet
-      } = instance.getCached();
-
-      expect(activeSheet.id).to.equal('fallback');
+      await waitFor(() => {
+        const { activeSheet } = instance.getCached();
+        expect(activeSheet.id).to.equal('fallback');
+      });
     });
 
   });
@@ -403,6 +400,86 @@ describe('<MultiSheetTab>', function() {
   });
 
 
+  describe('saving source sheets', function() {
+
+    async function saveSource(type, contents) {
+      const { instance } = renderTab({
+        tab: { ...defaultTab, type },
+        providers: [ {
+          type: type === 'form' ? 'json' : 'xml',
+          editor: DefaultEditor,
+          defaultName: 'Source',
+          isFallback: true
+        } ]
+      });
+
+      instance.editorRef.current.setXML(contents);
+
+      const saved = await instance.triggerAction('save');
+
+      await waitFor(() => expect(instance.getCached().lastXML).to.equal(saved));
+
+      return saved;
+    }
+
+    [ 'bpmn', 'dmn', 'cmmn' ].forEach(type => {
+      it(`should normalize Operaton ${ type } when saving the XML sheet`, async function() {
+        const xml = `<definitions xmlns:camunda="http://camunda.org/schema/1.0/${ type }" ` +
+          'xmlns:m="http://camunda.org/schema/modeler/1.0" m:executionPlatform="Camunda Platform">' +
+          '<camunda:properties /></definitions>';
+
+        const saved = await saveSource(type, xml);
+
+        expect(saved).to.contain(`xmlns:operaton="http://operaton.org/schema/1.0/${ type }"`);
+        expect(saved).to.contain('<operaton:properties />');
+        expect(saved).to.contain('xmlns:m="http://operaton.org/schema/modeler/1.0"');
+        expect(saved).to.contain('m:executionPlatform="Operaton"');
+      });
+    });
+
+    [ 'cloud-bpmn', 'cloud-dmn' ].forEach(type => {
+      it(`should preserve ${ type } source unchanged`, async function() {
+        const xml = '<definitions xmlns:m="http://camunda.org/schema/modeler/1.0" m:executionPlatform="Camunda Cloud" />';
+
+        expect(await saveSource(type, xml)).to.equal(xml);
+      });
+    });
+
+    it('should normalize Operaton metadata when saving the JSON sheet', async function() {
+      const contents = JSON.stringify({ executionPlatform: 'Camunda Platform', executionPlatformVersion: '7.23.0', components: [] });
+
+      const saved = JSON.parse(await saveSource('form', contents));
+
+      expect(saved.executionPlatform).to.equal('Operaton');
+      expect(saved.executionPlatformVersion).not.to.equal('7.23.0');
+      expect(saved.components).to.eql([]);
+    });
+
+    it('should preserve the selected Operaton form version', async function() {
+      const contents = JSON.stringify({ executionPlatform: 'Operaton', executionPlatformVersion: '2.0.0', components: [] });
+
+      const saved = JSON.parse(await saveSource('form', contents));
+
+      expect(saved.executionPlatformVersion).to.equal('2.0.0');
+    });
+
+    it('should preserve Cloud form contents unchanged', async function() {
+      const contents = '{"executionPlatform":"Camunda Cloud","components":[]}';
+
+      expect(await saveSource('form', contents)).to.equal(contents);
+    });
+
+    it('should allow saving malformed XML and JSON for repair', async function() {
+      const xml = '<definitions><task></definitions>';
+      const json = '{"components": [';
+
+      expect(await saveSource('bpmn', xml)).to.equal(xml);
+      expect(await saveSource('form', json)).to.equal(json);
+    });
+
+  });
+
+
   describe('dirty state', function() {
 
     let instance;
@@ -473,7 +550,9 @@ describe('<MultiSheetTab>', function() {
       await instance.switchSheet(sheets[1]);
 
       // then
-      expect(instance.isDirty()).to.be.true;
+      await waitFor(() => {
+        expect(instance.isDirty()).to.be.true;
+      });
     });
 
 
@@ -483,7 +562,9 @@ describe('<MultiSheetTab>', function() {
       await instance.handleContentUpdated(`${INITIAL_XML}-bar`);
 
       // then
-      expect(instance.isDirty()).to.be.true;
+      await waitFor(() => {
+        expect(instance.isDirty()).to.be.true;
+      });
     });
 
 

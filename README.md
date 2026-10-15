@@ -11,16 +11,18 @@ Operaton Modeler is ported from [Fluxnova Modeler](https://github.com/finos/flux
 * [Changelog](./CHANGELOG.md)
 * [Report a Bug](https://github.com/operaton/operaton-modeler/issues)
 
+Experimental Operaton ad-hoc subprocess editing is disabled by default. See the [activation instructions and engine compatibility notes](./docs/operaton-ad-hoc-comparison.md) before enabling it.
+
 ## Building the Application
 
-Build the app in a Posix environment. On Windows that is Git Bash or WSL. Make sure you have installed all the [necessary tools](https://github.com/nodejs/node-gyp#installation) to install and compile Node.js C++ addons.
+Use Node.js 24.15 or newer within the 24.x release line, matching the CI workflows. Build the app in a Posix environment. On Windows that is Git Bash or WSL. Make sure you have installed all the [necessary tools](https://github.com/nodejs/node-gyp#installation) to install and compile Node.js C++ addons.
 
 ```sh
 # checkout a tag
 git checkout main
 
 # install dependencies
-npm install
+npm ci
 
 # build the application to ./dist
 npm run build
@@ -35,7 +37,6 @@ Spin up the application for development, all strings attached:
 npm run dev
 ```
 
-### Development Setup
 Please checkout our [troubleshooting guide](./TROUBLESHOOTING.md) if you are experiencing issues when building from source.
 
 

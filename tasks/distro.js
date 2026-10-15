@@ -112,12 +112,14 @@ for (const [ key, value ] of Object.entries(windowsSigningOptions)) {
   }
 }
 
-if (publish && (argv.ia32 || argv.x64 || argv.arm64)) {
+if (publish && (argv.x64 || argv.arm64)) {
   console.error('Do not override arch; is manually pinned');
   process.exit(1);
 }
 
-const archOptions = [ 'x64', 'ia32', 'arm64' ].filter(a => argv[a]).map(a => `--${a}`);
+// note: ia32 (32-bit) Windows builds are no longer supported, as
+// Electron dropped Windows ia32 binaries; cf. https://www.electronjs.org/blog
+const archOptions = [ 'x64', 'arm64' ].filter(a => argv[a]).map(a => `--${a}`);
 
 const extraMetadataOptions = [
   `-c.extraMetadata.SENTRY_DSN=${ process.env.SENTRY_DSN || null }`

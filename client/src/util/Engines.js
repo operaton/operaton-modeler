@@ -27,8 +27,8 @@ export const ENGINE_PROFILES = [
   },
   {
     executionPlatform: ENGINES.OPERATON,
-    executionPlatformVersions: [ '1.0.0', '2.0.0', '2.1.0', '2.2.0' ],
-    latestStable: '2.2.0'
+    executionPlatformVersions: [ '1.0.0', '1.1.0', '2.0.0', '2.1.0' ],
+    latestStable: '2.1.0'
   }
 ];
 

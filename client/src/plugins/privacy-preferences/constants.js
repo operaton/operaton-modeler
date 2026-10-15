@@ -10,7 +10,7 @@
 
 export const PRIVACY_TEXT_FIELD = 'To enhance user experience, Operaton Modeler can integrate with 3rd party services, which requires external network requests. Please choose from the settings below.';
 
-export const PRIVACY_POLICY_URL = 'https://www.finos.org/privacy-policy';
+export const PRIVACY_POLICY_URL = 'https://operaton.org/privacy';
 
 export const LEARN_MORE_TEXT = 'With any of these options, none of your personal information or stored data will be submitted. Learn more:';
 

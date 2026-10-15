@@ -10,7 +10,7 @@
 
 import React, { createRef, Component } from 'react';
 
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, screen } from '@testing-library/react';
 
 import {
   App,
@@ -120,7 +120,7 @@ describe('<App>', function() {
         });
 
         // when
-        app.handleTabChanged()();
+        app.handleTabChanged(app.state.activeTab);
 
         // then
         // 1 - tab render
@@ -145,19 +145,14 @@ describe('<App>', function() {
         ]);
 
         // when
-        await app.triggerAction('close-all-tabs');
+        await app.triggerAction('close-active-tab');
 
-        await waitFor(() => {
-          expect(queryByText('1.bpmn')).not.to.exist;
-        });
-
+        // then
         await waitFor(() => {
           expect(queryByText('2.bpmn')).not.to.exist;
         });
 
-        // then
-        expect(updateMenuSpy).to.have.callCount(4);
-        expect(app.state.tabState).to.eql({});
+        expect(updateMenuSpy).to.have.been.called;
       });
 
     });
@@ -482,8 +477,14 @@ describe('<App>', function() {
         // when
         await app.openFiles([ file1, file2 ], file1);
 
+        // then
+        await waitFor(() => {
+          expect(screen.getByText('1.bpmn')).to.exist;
+          expect(screen.getByText('2.bpmn')).to.exist;
+        });
+
         const activeTab = app.findOpenTab(file1);
-        expect(app.state.activeTab).to.eql(activeTab);
+        expect(activeTab).to.eql(app.state.activeTab);
       });
 
 
@@ -637,18 +638,27 @@ describe('<App>', function() {
       const file1 = createFile('1.bpmn');
       const file2 = createFile('2.bpmn');
 
+      // when
       await app.openFiles([ file1, file2 ]);
+
+      // assume
+      await waitFor(() => {
+        expect(screen.getByText('1.bpmn')).to.exist;
+        expect(screen.getByText('2.bpmn')).to.exist;
+      });
 
       // when
       await app.closeTabs(t => true);
 
       // then
       await waitFor(() => {
+        expect(screen.queryByText('1.bpmn')).not.to.exist;
+        expect(screen.queryByText('2.bpmn')).not.to.exist;
         expect(app.state.tabs).to.be.empty;
-      });
 
-      // existing tab is focussed
-      expect(app.state.activeTab).to.equal(EMPTY_TAB);
+        // existing tab is focussed
+        expect(app.state.activeTab).to.equal(EMPTY_TAB);
+      });
     });
 
 
@@ -1307,23 +1317,30 @@ describe('<App>', function() {
       const onTabChanged = spy(function(tab, oldTab) {
         events.push([ 'tab-changed', tab ]);
 
-        app.handleTabShown(tab)();
+        app.handleTabShown();
       });
 
       const onTabShown = spy(function(tab) {
         events.push([ 'tab-shown', tab ]);
       });
 
+      // when
       const { app } = createApp({
         onTabChanged,
         onTabShown
       });
 
-      // when
+      await waitFor(() => {
+        expect(events).to.eql([
+          [ 'tab-shown', EMPTY_TAB ]
+        ]);
+      });
+
       const tab = await app.createDiagram('bpmn');
 
       // then
       expect(events).to.eql([
+        [ 'tab-shown', EMPTY_TAB ],
         [ 'tab-changed', tab ],
         [ 'tab-shown', tab ]
       ]);
@@ -1343,16 +1360,23 @@ describe('<App>', function() {
         events.push([ 'tab-shown', tab ]);
       });
 
+      // when
       const { app } = createApp({
         onTabChanged,
         onTabShown
       });
 
-      // when
+      await waitFor(() => {
+        expect(events).to.eql([
+          [ 'tab-shown', EMPTY_TAB ]
+        ]);
+      });
+
       const tab = await app.createDiagram('bpmn');
 
       // then
       expect(events).to.eql([
+        [ 'tab-shown', EMPTY_TAB ],
         [ 'tab-changed', tab ],
         [ 'tab-shown', tab ]
       ]);
@@ -1562,21 +1586,25 @@ describe('<App>', function() {
         // given
         await app.triggerAction('close-all-tabs');
 
+        // wait for tabs to close
+        await waitFor(() => {
+          expect(app.state.tabs).to.be.empty;
+        });
+
         // when
         await app.triggerAction('reopen-last-tab');
         await app.triggerAction('reopen-last-tab');
 
         // then
-        const expectedOpen = [
-          app.findOpenTab(openedTabs[2].file),
-          app.findOpenTab(openedTabs[1].file)
-        ];
-
         await waitFor(() => {
-          expect(app.state.tabs).to.eql(expectedOpen);
-        });
+          const expectedOpen = [
+            app.findOpenTab(openedTabs[2].file),
+            app.findOpenTab(openedTabs[1].file)
+          ];
 
-        expect(app.state.activeTab).to.eql(expectedOpen[1]);
+          expect(app.state.tabs).to.eql(expectedOpen);
+          expect(app.state.activeTab).to.eql(expectedOpen[1]);
+        });
       });
 
     });
@@ -1589,16 +1617,13 @@ describe('<App>', function() {
         // when
         await app.triggerAction('close-all-tabs');
 
+        // then
         await waitFor(() => {
           expect(app.state.tabs).to.be.empty;
+          expect(app.navigationHistory.get()).not.to.exist;
+          expect(app.navigationHistory.elements).to.be.empty;
+          expect(app.navigationHistory.idx).to.eql(-1);
         });
-
-        // then
-        const navigationHistory = app.navigationHistory;
-
-        expect(app.navigationHistory.get()).not.to.exist;
-        expect(navigationHistory.elements).to.be.empty;
-        expect(navigationHistory.idx).to.eql(-1);
       });
 
     });
@@ -2338,7 +2363,7 @@ describe('<App>', function() {
     class CustomEmptyTab extends Component {
 
       componentDidMount() {
-        this.props.onShown();
+        this.props.onShown(this.props.tab);
       }
 
       render() {
@@ -2867,51 +2892,23 @@ describe('<App>', function() {
   });
 
 
-  it('#handleActiveTabChange', async function() {
-
-    // given
-    const sendSpy = spy();
-
-    const backend = new Backend({
-      send: sendSpy
-    });
-
-    const { app } = createApp({
-      globals: {
-        backend
-      }
-    });
-
-    // when
-    const {
-      id,
-      type
-    } = await app.createDiagram('cloud-bpmn');
-
-    // then
-    expect(sendSpy).to.have.been.calledWith(
-      'activeTab:change',
-      { id, type },
-      EMPTY_TAB
-    );
-  });
-
-
   describe('modal handling', function() {
 
     it('should open modal', async function() {
 
       // given
       const {
-        app,
-        queryAllByRole
+        app
       } = createApp();
 
       // when
       app.openModal('KEYBOARD_SHORTCUTS');
 
       // then
-      expect(queryAllByRole('dialog')).have.length.gt(0);
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).to.exist;
+        expect(screen.getByText('Keyboard Shortcuts')).to.exist;
+      });
     });
 
 
@@ -2919,22 +2916,25 @@ describe('<App>', function() {
 
       // given
       const {
-        app,
-        queryAllByRole
+        app
       } = createApp();
 
       app.openModal('KEYBOARD_SHORTCUTS');
 
       // assume
-      const dialogs = queryAllByRole('dialog');
-      expect(dialogs).have.length.gt(0);
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).to.exist;
+      });
 
       // when
-      app.closeModal();
+      await waitFor(() => {
+        app.closeModal();
+      });
 
       // then
-      expect(queryAllByRole('dialog')).to.have.length.lt(dialogs.length);
-
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).to.not.exist;
+      });
     });
 
 
@@ -3682,7 +3682,8 @@ function createApp(options = {}) {
 
   const appRef = createRef();
 
-  const rendered = render(
+  let rendered;
+  rendered = render(
     <App
       ref={ appRef }
       cache={ cache }

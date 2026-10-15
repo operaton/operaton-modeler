@@ -22,6 +22,14 @@ describe('tabs/cmmn', function() {
       expect(contents).to.contain('id="Case_{{ ID:case }}"');
     });
 
+
+    it('should declare the Operaton extension namespace', function() {
+      const contents = require('../diagram.cmmn');
+
+      expect(contents).to.contain('xmlns:operaton="http://operaton.org/schema/1.0/cmmn"');
+      expect(contents).not.to.contain('http://camunda.org/schema/1.0/cmmn');
+    });
+
   });
 
 });
