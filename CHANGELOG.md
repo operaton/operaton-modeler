@@ -13,6 +13,7 @@ All notable changes to the [Operaton Modeler](https://github.com/operaton/operat
 - Added Operaton CMMN namespace support, including legacy Camunda imports and save/reopen verification.
 - Fixed Electron 44 opening files in an already running application.
 - Updated the forum and privacy-policy links to Operaton.
+- Replaced inherited application icons with the official Operaton logo for macOS, Windows and Linux, including desktop registration and window icons.
 - Prepared Operaton ad-hoc subprocess properties for engine PR #3207 behind the disabled-by-default `enable-operaton-ad-hoc` flag; existing settings survive saves with the flag disabled.
 - Omitted restricted-variable extensions and additional Fluxnova compatibility code.
 

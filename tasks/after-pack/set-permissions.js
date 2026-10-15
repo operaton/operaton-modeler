@@ -30,7 +30,7 @@ module.exports = function(context) {
   console.log(`  • setting file permissions    file=${appOutDir}`);
 
   const executableFiles = [
-    'camunda-modeler',
+    'operaton-modeler',
     'chrome-sandbox',
     'support/xdg_register.sh',
     'support/xdg_unregister.sh'

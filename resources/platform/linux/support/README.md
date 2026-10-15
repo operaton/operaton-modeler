@@ -1,7 +1,7 @@
 # Support Scripts
 
 This folder contains two shell scripts to register and de-register
-the Camunda Modeler as the default editor for BPMN, CMMN and DMN
+the Operaton Modeler as the default editor for BPMN, CMMN, DMN and Form
 files.
 
 We use xdg-utils from <https://www.freedesktop.org/> that
@@ -9,7 +9,7 @@ are supported by all major Linux desktop environments.
 
 ## Register
 
-Use the script `./xdg_register.sh` register the modeler.
+Use the script `./xdg_register.sh` to register the modeler and its Operaton desktop icon.
 
 ## Unregister
 
